@@ -1,0 +1,68 @@
+diff --git a/backend/src/domain/models.rs b/backend/src/domain/models.rs
+index 9558efe..f71c39d 100644
+--- a/backend/src/domain/models.rs
++++ b/backend/src/domain/models.rs
+@@ -73,6 +73,7 @@ pub struct UpdateItem {
+ #[serde(deny_unknown_fields)]
+ #[into_params(parameter_in = Query)]
+ pub struct Pagination {
++    pub completed: Option<bool>,
+     #[param(minimum = 1, maximum = 100)]
+     pub limit: i64,
+     #[param(minimum = 0)]
+diff --git a/backend/src/domain/items.rs b/backend/src/domain/items.rs
+index 84f67ff..7ee1c4b 100644
+--- a/backend/src/domain/items.rs
++++ b/backend/src/domain/items.rs
+@@ -32,13 +32,14 @@ pub async fn list(pool: &PgPool, owner: Uuid, page: Pagination) -> Result<ItemPa
+     sqlx::query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
+         .execute(&mut *tx)
+         .await?;
+-    let total: i64 = sqlx::query_scalar("SELECT count(*) FROM items WHERE owner_id = $1")
++    let total: i64 = sqlx::query_scalar("SELECT count(*) FROM items WHERE owner_id = $1 AND ($2::boolean IS NULL OR completed = $2)")
+         .bind(owner)
++        .bind(page.completed)
+         .fetch_one(&mut *tx)
+         .await?;
+     let items = sqlx::query_as::<_, Item>(
+-        "SELECT * FROM items WHERE owner_id = $1 ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $3",
+-    ).bind(owner).bind(page.limit).bind(page.offset).fetch_all(&mut *tx).await?;
++        "SELECT * FROM items WHERE owner_id = $1 AND ($2::boolean IS NULL OR completed = $2) ORDER BY created_at DESC, id DESC LIMIT $3 OFFSET $4",
++    ).bind(owner).bind(page.completed).bind(page.limit).bind(page.offset).fetch_all(&mut *tx).await?;
+     tx.commit().await?;
+     Ok(ItemPage {
+         items,
+diff --git a/backend/tests/api_integration.rs b/backend/tests/api_integration.rs
+index 3da8cf3..0c9b610 100644
+--- a/backend/tests/api_integration.rs
++++ b/backend/tests/api_integration.rs
+@@ -10,6 +10,29 @@ struct Session {
+     token: String,
+ }
+ 
++#[tokio::test]
++#[ignore = "requires running PostgreSQL, imported Keycloak realm, and API"]
++async fn completed_filter_matches_real_database() {
++    let issuer = std::env::var("OIDC_ISSUER").unwrap();
++    let tokens = support::login(&issuer, "alice", "starter-spa").await;
++    let session = Session {
++        http: Client::new(),
++        base: std::env::var("TEST_API_URL").unwrap(),
++        token: tokens.access_token,
++    };
++    for completed in [false, true] {
++        let item: Value = session.request(Method::POST, "/api/v1/items", Some(json!({"title":"筛选演练","completed":completed})))
++            .await.json().await.unwrap();
++        let page: Value = session.request(Method::GET, &format!("/api/v1/items?limit=100&offset=0&completed={completed}"), None)
++            .await.json().await.unwrap();
++        let rows = page["items"].as_array().unwrap();
++        assert!(rows.iter().all(|row| row["completed"] == completed));
++        assert!(rows.iter().any(|row| row["id"] == item["id"]));
++        assert_eq!(session.request(Method::DELETE, &format!("/api/v1/items/{}?version=1", item["id"].as_str().unwrap()), None).await.status(), 204);
++    }
++    problem(session.request(Method::GET, "/api/v1/items?limit=20&offset=0&completed=invalid", None).await, 400, "validation_error").await;
++}
++
+ impl Session {
+     async fn request(&self, method: reqwest::Method, path: &str, body: Option<Value>) -> Response {
+         let mut request = self

@@ -1,0 +1,70 @@
+diff --git a/backend/src/domain/models.rs b/backend/src/domain/models.rs
+index 9558efe..f8ac94c 100644
+--- a/backend/src/domain/models.rs
++++ b/backend/src/domain/models.rs
+@@ -23,6 +23,7 @@ pub struct Identity {
+ pub struct Item {
+     pub id: Uuid,
+     pub title: String,
++    pub title_bytes: i32,
+     pub completed: bool,
+     pub version: i32,
+     #[serde(serialize_with = "timestamp")]
+diff --git a/backend/src/domain/items.rs b/backend/src/domain/items.rs
+index 84f67ff..e36f02b 100644
+--- a/backend/src/domain/items.rs
++++ b/backend/src/domain/items.rs
+@@ -37,7 +37,7 @@ pub async fn list(pool: &PgPool, owner: Uuid, page: Pagination) -> Result<ItemPa
+         .fetch_one(&mut *tx)
+         .await?;
+     let items = sqlx::query_as::<_, Item>(
+-        "SELECT * FROM items WHERE owner_id = $1 ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $3",
++        "SELECT *, octet_length(title) AS title_bytes FROM items WHERE owner_id = $1 ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $3",
+     ).bind(owner).bind(page.limit).bind(page.offset).fetch_all(&mut *tx).await?;
+     tx.commit().await?;
+     Ok(ItemPage {
+@@ -50,12 +50,12 @@ pub async fn list(pool: &PgPool, owner: Uuid, page: Pagination) -> Result<ItemPa
+ 
+ pub async fn create(pool: &PgPool, owner: Uuid, input: CreateItem) -> Result<Item, StoreError> {
+     Ok(sqlx::query_as::<_, Item>(
+-        "INSERT INTO items (id, owner_id, title, completed, version) VALUES ($1, $2, $3, $4, 1) RETURNING *",
++        "INSERT INTO items (id, owner_id, title, completed, version) VALUES ($1, $2, $3, $4, 1) RETURNING *, octet_length(title) AS title_bytes",
+     ).bind(Uuid::new_v4()).bind(owner).bind(input.title).bind(input.completed).fetch_one(pool).await?)
+ }
+ 
+ pub async fn get(pool: &PgPool, owner: Uuid, id: Uuid) -> Result<Item, StoreError> {
+-    sqlx::query_as::<_, Item>("SELECT * FROM items WHERE owner_id = $1 AND id = $2")
++    sqlx::query_as::<_, Item>("SELECT *, octet_length(title) AS title_bytes FROM items WHERE owner_id = $1 AND id = $2")
+         .bind(owner)
+         .bind(id)
+         .fetch_optional(pool)
+@@ -68,7 +68,7 @@ async fn lock_item(
+     owner: Uuid,
+     id: Uuid,
+ ) -> Result<Item, StoreError> {
+-    sqlx::query_as::<_, Item>("SELECT * FROM items WHERE owner_id = $1 AND id = $2 FOR UPDATE")
++    sqlx::query_as::<_, Item>("SELECT *, octet_length(title) AS title_bytes FROM items WHERE owner_id = $1 AND id = $2 FOR UPDATE")
+         .bind(owner)
+         .bind(id)
+         .fetch_optional(&mut **tx)
+@@ -93,7 +93,7 @@ pub async fn update(
+     }
+     let updated = sqlx::query_as::<_, Item>(
+         "UPDATE items SET title = $1, completed = $2, version = version + 1, \
+-         updated_at = clock_timestamp() WHERE id = $3 RETURNING *",
++         updated_at = clock_timestamp() WHERE id = $3 RETURNING *, octet_length(title) AS title_bytes",
+     )
+     .bind(command.input.title.unwrap_or(item.title))
+     .bind(command.input.completed.unwrap_or(item.completed))
+diff --git a/backend/tests/api_integration.rs b/backend/tests/api_integration.rs
+index 3da8cf3..44562b8 100644
+--- a/backend/tests/api_integration.rs
++++ b/backend/tests/api_integration.rs
+@@ -122,6 +122,7 @@ async fn crud_cases(alice: &Session, bob: &Session) {
+         .to_owned();
+     let item: Value = response.json().await.unwrap();
+     assert_eq!(item["title"], "真实事项");
++    assert_eq!(item["titleBytes"], 12);
+     assert_eq!(item["version"], 1);
+     let date = item["createdAt"].as_str().unwrap();
+     assert!(regex::Regex::new(r"\.\d{3}Z$").unwrap().is_match(date));

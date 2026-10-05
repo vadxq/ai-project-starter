@@ -1,0 +1,38 @@
+diff --git a/spa/src/features/item-composer.tsx b/spa/src/features/item-composer.tsx
+index a493c67..5f9f18c 100644
+--- a/spa/src/features/item-composer.tsx
++++ b/spa/src/features/item-composer.tsx
+@@ -43,6 +43,12 @@ export function ItemComposer({
+           disabled={saving}
+           aria-invalid={invalid}
+           aria-describedby={invalid ? 'new-error' : undefined}
++          onKeyDown={(event): void => {
++            if (event.key === 'Escape') {
++              setTitle('');
++              setInvalid(false);
++            }
++          }}
+           onChange={(event): void => {
+             setTitle(event.target.value);
+             setInvalid(false);
+diff --git a/spa/tests/clear-draft.spec.ts b/spa/tests/clear-draft.spec.ts
+new file mode 100644
+index 0000000..499a520
+--- /dev/null
++++ b/spa/tests/clear-draft.spec.ts
+@@ -0,0 +1,15 @@
++import { expect, test } from '@playwright/test';
++
++test('Escape clears an unsaved draft without creating an item', async ({ page }) => {
++  await page.goto('/');
++  await page.getByRole('combobox', { name: 'Language' }).selectOption('en');
++  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
++  await page.locator('#username').fill('alice');
++  await page.locator('#password').fill('starter-password');
++  await page.locator('#kc-login').click();
++  const input = page.getByRole('textbox', { name: 'Item title', exact: true });
++  await input.fill('unsaved draft');
++  await input.press('Escape');
++  await expect(input).toHaveValue('');
++  await expect(page.getByRole('listitem').filter({ hasText: 'unsaved draft' })).toHaveCount(0);
++});

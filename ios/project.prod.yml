@@ -1,0 +1,9 @@
+include: [project.base.yml]
+targets:
+  Starter:
+    settings:
+      base:
+        APP_ENV: prod
+        APP_DISPLAY_NAME: Items
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.starter
+        API_BASE_URL: https://api.example.com

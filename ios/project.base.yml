@@ -1,0 +1,56 @@
+name: Starter
+options:
+  minimumXcodeGenVersion: 2.45.0
+  deploymentTarget:
+    iOS: '18.0'
+  knownRegions: [en, zh-Hans]
+settings:
+  base:
+    SWIFT_VERSION: '6.0'
+    IPHONEOS_DEPLOYMENT_TARGET: '18.0'
+    DEVELOPMENT_TEAM: ''
+    ENABLE_USER_SCRIPT_SANDBOXING: 'NO'
+    GENERATE_INFOPLIST_FILE: 'NO'
+packages:
+  APIClient:
+    path: Packages/APIClient
+targets:
+  Starter:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes: [Info.plist, Info.Dev.plist]
+    dependencies:
+      - package: APIClient
+    settings:
+      base:
+        INFOPLIST_FILE: App/Info.plist
+        TARGETED_DEVICE_FAMILY: '1,2'
+        SWIFT_EMIT_LOC_STRINGS: 'YES'
+      configs:
+        Debug:
+          ENABLE_TESTABILITY: 'YES'
+  StarterUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: Starter
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.starter.uitests
+        GENERATE_INFOPLIST_FILE: 'YES'
+schemes:
+  Starter:
+    build:
+      targets:
+        Starter: all
+        StarterUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: [StarterUITests]
+    archive:
+      config: Release

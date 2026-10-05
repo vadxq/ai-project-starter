@@ -1,0 +1,10 @@
+validation_error: 请检查填写的内容后重试。
+unauthorized: 请先登录。
+invalid_credentials: 用户名或密码错误。
+forbidden: 当前账户没有访问此 API 的权限。
+not_found: 未找到此事项或页面。
+method_not_allowed: 不支持此请求方式。
+version_conflict: 此事项已被修改，请刷新后重试。
+payload_too_large: 请求内容过大。
+service_unavailable: 服务暂时不可用，请稍后重试。
+internal_error: 无法完成请求。

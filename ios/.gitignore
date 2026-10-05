@@ -1,0 +1,17 @@
+.DS_Store
+.env*
+!.env.example
+Pods/
+*.xcodeproj/
+*.xcworkspace/
+!Starter.xcworkspace/
+Starter.xcworkspace/*
+!Starter.xcworkspace/xcshareddata/
+Starter.xcworkspace/xcshareddata/*
+!Starter.xcworkspace/xcshareddata/swiftpm/
+Starter.xcworkspace/xcshareddata/swiftpm/*
+!Starter.xcworkspace/xcshareddata/swiftpm/Package.resolved
+.build/
+build/
+DerivedData/
+.codex/

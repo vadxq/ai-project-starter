@@ -1,0 +1,12 @@
+include: [project.base.yml]
+targets:
+  Starter:
+    settings:
+      base:
+        APP_ENV: dev
+        APP_DISPLAY_NAME: Items Dev
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.starter.dev
+        API_BASE_URL: http://localhost:8080
+      configs:
+        Debug:
+          INFOPLIST_FILE: App/Info.Dev.plist

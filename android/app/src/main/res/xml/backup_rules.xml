@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <!-- 只迁移显示偏好；认证密文和绑定本机的 Keystore keyset 不进入备份。 -->
+    <cloud-backup><include domain="sharedpref" path="preferences.xml" /></cloud-backup>
+    <device-transfer><include domain="sharedpref" path="preferences.xml" /></device-transfer>
+</data-extraction-rules>

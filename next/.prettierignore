@@ -1,0 +1,10 @@
+node_modules
+dist
+.next
+next-env.d.ts
+.codex
+src/api/generated
+package-lock.json
+openapi/openapi.json
+playwright-report
+test-results

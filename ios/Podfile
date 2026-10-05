@@ -1,0 +1,16 @@
+platform :ios, '18.0'
+project 'Starter.xcodeproj'
+use_frameworks!
+
+target 'Starter' do
+  # APIClient uses native SwiftPM; this target currently has no CocoaPods dependencies.
+end
+
+# 本工程只支持 iOS 18；Pods 也使用相同下限，避免旧 podspec 的 iOS 9 target 被当前 Xcode 拒绝。
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |configuration|
+      configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0'
+    end
+  end
+end

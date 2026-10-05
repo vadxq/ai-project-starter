@@ -1,0 +1,10 @@
+validation_error: Check the request fields and try again.
+unauthorized: Sign in to continue.
+invalid_credentials: Incorrect username or password.
+forbidden: Your account does not have access to this API.
+not_found: This item or page could not be found.
+method_not_allowed: This request method is not supported.
+version_conflict: This item has changed. Refresh it before trying again.
+payload_too_large: The request is too large.
+service_unavailable: The service is temporarily unavailable. Try again shortly.
+internal_error: The request could not be completed.

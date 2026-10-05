@@ -1,0 +1,8 @@
+node_modules
+dist
+.codex
+src/api/generated
+package-lock.json
+openapi/openapi.json
+playwright-report
+test-results

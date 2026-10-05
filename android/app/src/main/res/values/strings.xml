@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app">Items</string>
+    <string name="sign_in">Sign in</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="invalid_credentials">Incorrect username or password.</string>
+    <string name="sign_out">Sign out</string>
+    <string name="welcome">Your next step, in one place.</string>
+    <string name="welcome_body">Sign in to manage your items.</string>
+    <string name="language">Language</string>
+    <string name="theme">Appearance</string>
+    <string name="system">System</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="loading">Loading…</string>
+    <string name="add">Add item</string>
+    <string name="title">Item title</string>
+    <string name="placeholder">What needs to be done?</string>
+    <string name="empty">No items yet</string>
+    <string name="empty_body">Add your first item above.</string>
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="confirm_delete">Delete this item?</string>
+    <string name="complete">Mark complete</string>
+    <string name="reopen">Mark incomplete</string>
+    <string name="retry">Try again</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="invalid_title">Enter a title between 1 and 240 UTF-8 bytes.</string>
+    <string name="validation_error">Check the fields and try again.</string>
+    <string name="unauthorized">Your session has ended. Sign in again.</string>
+    <string name="forbidden">Your account does not have access.</string>
+    <string name="not_found">This item is no longer available.</string>
+    <string name="version_conflict">This item changed elsewhere. Refresh and try again.</string>
+    <string name="payload_too_large">The request is too large.</string>
+    <string name="service_unavailable">The service is unavailable. Try again shortly.</string>
+    <string name="network_error">Could not connect. Check your connection and try again.</string>
+    <string name="auth_error">Sign-in could not be completed. Try again.</string>
+    <string name="unknown_error">Something went wrong. Try again.</string>
+    <string name="back">Back to items</string>
+    <string name="preferences">Preferences</string>
+    <plurals name="item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+</resources>

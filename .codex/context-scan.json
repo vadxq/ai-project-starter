@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-05",
+  "task": "Replace OIDC with application username/password JWT authentication across all five projects",
+  "contract": [
+    "POST /api/v1/auth/login: username/password -> accessToken, refreshToken, expiresIn, user",
+    "POST /api/v1/auth/refresh: refreshToken -> rotated token pair",
+    "POST /api/v1/auth/logout: refreshToken -> 204, revoke current session",
+    "GET /api/v1/me: Bearer JWT -> id/username",
+    "15-minute access token; 30-day refresh session; Argon2id password hashing; HS256 signing secret required",
+    "Web access token in memory, refresh token in sessionStorage; native refresh token in Keystore/Keychain",
+    "No external provider, callback or OAuth discovery required"
+  ],
+  "risks": [
+    "Password verification and JWT validation",
+    "Refresh rotation concurrency and logout invalidation",
+    "Late requests restoring signed-out users",
+    "Removing dependencies and regenerated contracts",
+    "Available disk and mobile runtimes"
+  ],
+  "validation": [
+    "Backend fmt/Clippy/build + real PostgreSQL HTTP auth and CRUD",
+    "OpenAPI regenerate/check",
+    "Separate Web lint/format/typecheck/build and real Playwright",
+    "Android lint/build and Emulator test when runtime available",
+    "iOS native generation/build and XCUITest when runtime available",
+    "English/Chinese docs and AGENTS updated; no stale active OIDC references"
+  ],
+  "unavailable_tools": [
+    "sequential-thinking",
+    "ACE search_context",
+    "shrimp-task-manager",
+    "verification-before-completion",
+    "writing-plans"
+  ]
+}

@@ -33,3 +33,7 @@ adb reverse tcp:8080 tcp:8080
 ```
 
 原生 strings / plurals 位于 values 与 values-zh-rCN；应用语言使用 LocaleManager。复制本端后不需要 Web 工程或根配置。新增语言补资源与 locales_config，保持错误和无障碍文案完整。
+
+## AI 开发
+
+在本目录启动，读取 [AGENTS.md](AGENTS.md)。[android-changelog 示例](.agents/skills/android-changelog/SKILL.md) 用于按请求创建或更新本端 `changelog.md`。独立复制时保留 AGENTS.md 和隐藏的 `.agents` 目录；验证继续使用上文原生命令。临时计划与证据统一放在忽略的 `.ailog`，无需父仓库文件或个人模型/MCP 配置。

@@ -64,4 +64,10 @@ cargo test --test api_integration -- --ignored
 
 Tests use real password verification, JWTs, PostgreSQL, and HTTP. They cover invalid credentials, signature / issuer / audience / expiry, refresh rotation, logout, CRUD, owner isolation, and version conflicts. Regular cargo test leaves these service-dependent tests ignored; that does not mean they passed.
 
+Authentication endpoints also verify malformed JSON returns 400 and oversized JSON returns 413, matching Item endpoints. OpenAPI descriptions state the title's UTF-8 byte semantics explicitly; maxLength is not used as a substitute for post-trim byte validation. PATCH must supply at least one modified field in addition to version, with null rejected.
+
 Production binaries are `target/release/migrate`, `target/release/create-user`, and `target/release/starter-api`. Configure server settings, migrate, create accounts with your own passwords, then start the API. Never ship the local example password or expose JWT_SECRET to clients.
+
+## AI development
+
+Start in this directory and read [AGENTS.md](AGENTS.md). The [backend-changelog example](.agents/skills/backend-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.

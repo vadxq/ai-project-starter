@@ -37,3 +37,7 @@ The development Simulator can access localhost:8080. Start Rust, create alice / 
 Languages are defined in App/Localizable.xcstrings. English or Chinese is initially selected from the system language; in-app preferences persist. SwiftUI / Observation manage state, AuthSession handles password login, refresh, and logout, and Keychain stores the refresh token.
 
 The local API input is `Packages/APIClient/Sources/APIClient/openapi.json`. The official build plugin generates Swift types; do not edit the output by hand. No other repository directory is required. Tests includes local XCUITest coverage; full verification requires Simulator results on iOS 18 and the current system version.
+
+## AI development
+
+Start in this directory and read [AGENTS.md](AGENTS.md). The [ios-changelog example](.agents/skills/ios-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.

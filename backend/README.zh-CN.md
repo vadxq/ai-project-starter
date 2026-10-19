@@ -65,3 +65,9 @@ cargo test --test api_integration -- --ignored
 测试覆盖真实密码验证、JWT、数据库和 HTTP：错误凭证、签名 / issuer / audience / 期限、刷新轮换、退出、CRUD、用户隔离和版本冲突。普通 cargo test 的 ignored 不代表这些测试通过。
 
 生产产物为 `target/release/migrate`、`target/release/create-user` 和 `target/release/starter-api`。配置服务端环境、迁移、用实际密码创建账号，再启动 API。生产不用本地示例密码，JWT_SECRET 不进入客户端。
+
+认证端点与 Item 一致：非法 JSON 返回 400，请求体超限返回 413。OpenAPI 用说明明确 title 是裁剪后的 UTF-8 字节限制，不用字符数 maxLength 代替字节校验。PATCH 除 version 外至少提供一个修改字段，拒绝 null。
+
+## AI 开发
+
+在本目录启动，读取 [AGENTS.md](AGENTS.md)。[backend-changelog 示例](.agents/skills/backend-changelog/SKILL.md) 用于按请求创建或更新本端 `changelog.md`。独立复制时保留 AGENTS.md 和隐藏的 `.agents` 目录；验证继续使用上文原生命令。临时计划与证据统一放在忽略的 `.ailog`，无需父仓库文件或个人模型/MCP 配置。

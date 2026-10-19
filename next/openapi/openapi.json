@@ -8,8 +8,7 @@
             "type": "boolean"
           },
           "title": {
-            "maxLength": 240,
-            "minLength": 1,
+            "description": "After trimming leading/trailing ASCII space, TAB, CR and LF, title must contain 1–240 UTF-8 bytes.",
             "type": "string"
           }
         },
@@ -209,13 +208,13 @@
       },
       "UpdateItem": {
         "additionalProperties": false,
+        "description": "Supply version and at least one of title or completed. Omitted fields stay unchanged; null is rejected.",
         "properties": {
           "completed": {
             "type": "boolean"
           },
           "title": {
-            "maxLength": 240,
-            "minLength": 1,
+            "description": "After trimming leading/trailing ASCII space, TAB, CR and LF, title must contain 1–240 UTF-8 bytes.",
             "type": "string"
           },
           "version": {
@@ -293,6 +292,16 @@
             },
             "description": ""
           },
+          "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": ""
+          },
           "503": {
             "content": {
               "application/problem+json": {
@@ -337,6 +346,16 @@
             "description": ""
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": ""
+          },
+          "413": {
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -397,6 +416,16 @@
             "description": ""
           },
           "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": ""
+          },
+          "413": {
             "content": {
               "application/problem+json": {
                 "schema": {

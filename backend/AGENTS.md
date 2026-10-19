@@ -10,3 +10,5 @@ This project can be copied on its own. `src/api` handles HTTP and OpenAPI; `src/
 - Keep handwritten functions at most 120 lines, files at most 800 lines, and positional parameters at most 3. Prefer simple functions and specific error types.
 - Verify with `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, and `cargo build --release`. Prepare real services for integration tests as described in the README.
 - Export with `cargo run --example export-openapi`; no service connection is required.
+
+The [README](README.md) contains standalone setup, native verification commands and contract semantics. Use [backend-changelog](.agents/skills/backend-changelog/SKILL.md) when asked to create or update this project's `changelog.md`. JSON parsing errors must preserve 413 for oversized bodies across all endpoints. Describe UTF-8 byte limits explicitly in Rust schema metadata; OpenAPI maxLength counts characters, not bytes. Keep temporary records and evidence in ignored .ailog.

@@ -1,6 +1,6 @@
 node_modules
 dist
-.codex
+.ailog
 src/api/generated
 package-lock.json
 openapi/openapi.json

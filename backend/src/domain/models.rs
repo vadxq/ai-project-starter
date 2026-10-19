@@ -33,7 +33,7 @@ pub struct Item {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct CreateItem {
-    #[schema(min_length = 1, max_length = 240)]
+    /// After trimming leading/trailing ASCII space, TAB, CR and LF, title must contain 1–240 UTF-8 bytes.
     pub title: String,
     pub completed: bool,
 }
@@ -47,6 +47,7 @@ where
     T::deserialize(deserializer).map(Some)
 }
 
+/// Supply version and at least one of title or completed. Omitted fields stay unchanged; null is rejected.
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateItem {
@@ -57,7 +58,8 @@ pub struct UpdateItem {
         deserialize_with = "non_null",
         skip_serializing_if = "Option::is_none"
     )]
-    #[schema(nullable = false, min_length = 1, max_length = 240)]
+    /// After trimming leading/trailing ASCII space, TAB, CR and LF, title must contain 1–240 UTF-8 bytes.
+    #[schema(nullable = false)]
     pub title: Option<String>,
     #[serde(
         default,

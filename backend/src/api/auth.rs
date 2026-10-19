@@ -6,7 +6,7 @@ use axum::{
 
 use super::{
     context::RequestContext,
-    error::{ApiError, ErrorKind, Problem},
+    error::{ApiError, Problem},
 };
 use crate::{
     AppState,
@@ -14,13 +14,13 @@ use crate::{
 };
 
 #[utoipa::path(post, path = "/api/v1/auth/login", operation_id = "login", request_body = LoginRequest,
-    responses((status = 200, body = TokenResponse), (status = 400, body = Problem), (status = 401, body = Problem), (status = 503, body = Problem)))]
+    responses((status = 200, body = TokenResponse), (status = 400, body = Problem), (status = 401, body = Problem), (status = 413, body = Problem), (status = 503, body = Problem)))]
 pub async fn login(
     State(state): State<AppState>,
     Extension(context): Extension<RequestContext>,
     input: Result<Json<LoginRequest>, JsonRejection>,
 ) -> Result<Json<TokenResponse>, ApiError> {
-    let Json(input) = input.map_err(|_| context.error(ErrorKind::Validation))?;
+    let Json(input) = input.map_err(|error| context.json_error(error))?;
     state
         .tokens
         .login(&state.pool, input)
@@ -30,13 +30,13 @@ pub async fn login(
 }
 
 #[utoipa::path(post, path = "/api/v1/auth/refresh", operation_id = "refreshSession", request_body = RefreshRequest,
-    responses((status = 200, body = TokenResponse), (status = 400, body = Problem), (status = 401, body = Problem), (status = 503, body = Problem)))]
+    responses((status = 200, body = TokenResponse), (status = 400, body = Problem), (status = 401, body = Problem), (status = 413, body = Problem), (status = 503, body = Problem)))]
 pub async fn refresh(
     State(state): State<AppState>,
     Extension(context): Extension<RequestContext>,
     input: Result<Json<RefreshRequest>, JsonRejection>,
 ) -> Result<Json<TokenResponse>, ApiError> {
-    let Json(input) = input.map_err(|_| context.error(ErrorKind::Validation))?;
+    let Json(input) = input.map_err(|error| context.json_error(error))?;
     state
         .tokens
         .refresh(&state.pool, &input.refresh_token)
@@ -46,13 +46,13 @@ pub async fn refresh(
 }
 
 #[utoipa::path(post, path = "/api/v1/auth/logout", operation_id = "logout", request_body = RefreshRequest,
-    responses((status = 204), (status = 400, body = Problem), (status = 401, body = Problem), (status = 503, body = Problem)))]
+    responses((status = 204), (status = 400, body = Problem), (status = 401, body = Problem), (status = 413, body = Problem), (status = 503, body = Problem)))]
 pub async fn logout(
     State(state): State<AppState>,
     Extension(context): Extension<RequestContext>,
     input: Result<Json<RefreshRequest>, JsonRejection>,
 ) -> Result<StatusCode, ApiError> {
-    let Json(input) = input.map_err(|_| context.error(ErrorKind::Validation))?;
+    let Json(input) = input.map_err(|error| context.json_error(error))?;
     state
         .tokens
         .logout(&state.pool, &input.refresh_token)

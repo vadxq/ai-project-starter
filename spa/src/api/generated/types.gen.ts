@@ -6,6 +6,9 @@ export type ClientOptions = {
 
 export type CreateItem = {
     completed: boolean;
+    /**
+     * After trimming leading/trailing ASCII space, TAB, CR and LF, title must contain 1–240 UTF-8 bytes.
+     */
     title: string;
 };
 
@@ -61,8 +64,14 @@ export type TokenResponse = {
     user: Identity;
 };
 
+/**
+ * Supply version and at least one of title or completed. Omitted fields stay unchanged; null is rejected.
+ */
 export type UpdateItem = {
     completed?: boolean;
+    /**
+     * After trimming leading/trailing ASCII space, TAB, CR and LF, title must contain 1–240 UTF-8 bytes.
+     */
     title?: string;
     version: number;
 };
@@ -77,6 +86,7 @@ export type LoginData = {
 export type LoginErrors = {
     400: Problem;
     401: Problem;
+    413: Problem;
     503: Problem;
 };
 
@@ -98,6 +108,7 @@ export type LogoutData = {
 export type LogoutErrors = {
     400: Problem;
     401: Problem;
+    413: Problem;
     503: Problem;
 };
 
@@ -119,6 +130,7 @@ export type RefreshSessionData = {
 export type RefreshSessionErrors = {
     400: Problem;
     401: Problem;
+    413: Problem;
     503: Problem;
 };
 

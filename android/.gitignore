@@ -4,4 +4,4 @@
 .gradle/
 build/
 local.properties
-.codex/
+.ailog/

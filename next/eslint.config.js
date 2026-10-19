@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 export default tseslint.config(
   {
     ignores: [
-      '.codex/**',
+      '.ailog/**',
       '.next/**',
       'next-env.d.ts',
       'src/api/generated/**',

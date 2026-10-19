@@ -29,4 +29,8 @@ npm run start
 
 API 输入和生成配置在本端 `openapi` / `openapi-ts.config.ts`；SDK 在 `src/api/generated`，不能手改。语言资源使用 next-intl ICU 消息，本端维护；locale layout 更新翻译，根认证状态不随切换语言清除。
 
-启动真实 API 并 build 后，`npm run test:e2e` 检查真实密码登录 / CRUD、两种语言 / 主题、刷新、注销、响应式页面和 SSR。首次需要 `npx playwright install chromium`。结果放在本端 `.codex`。
+启动真实 API 并 build 后，`npm run test:e2e` 检查真实密码登录 / CRUD、两种语言 / 主题、刷新、注销、响应式页面和 SSR。首次需要 `npx playwright install chromium`。结果放在本端被 Git 忽略的 `.ailog`。
+
+## AI 开发
+
+在本目录启动，读取 [AGENTS.md](AGENTS.md)。[next-changelog 示例](.agents/skills/next-changelog/SKILL.md) 用于按请求创建或更新本端 `changelog.md`。保留公共 SSR 与浏览器私有认证边界。独立复制时保留 AGENTS.md 和隐藏的 `.agents` 目录；验证继续使用上文原生命令。临时计划与证据统一放在忽略的 `.ailog`，无需父仓库文件或个人模型/MCP 配置。

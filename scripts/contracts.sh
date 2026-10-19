@@ -3,10 +3,14 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 mode="${1:?Use check or generate}"
-mkdir -p "$root/.codex"
-scratch="$(mktemp -d "$root/.codex/contracts.XXXXXX")"
+if [[ "$#" -ne 1 || ! "$mode" =~ ^(check|generate)$ ]]; then
+  printf '%s\n' 'Usage: bash scripts/contracts.sh <check|generate>' >&2
+  exit 2
+fi
+mkdir -p "$root/.ailog"
+scratch="$(mktemp -d "$root/.ailog/contracts.XXXXXX")"
 trap 'rm -rf "$scratch"' EXIT
-export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$root/.codex/target}"
+export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$root/.ailog/target}"
 (cd "$root/backend" && cargo run --quiet --locked --example export-openapi) > "$scratch/openapi.json"
 
 files=(docs/contracts/openapi.json spa/openapi/openapi.json next/openapi/openapi.json android/app/openapi/openapi.json ios/Packages/APIClient/Sources/APIClient/openapi.json)

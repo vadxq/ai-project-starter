@@ -6,14 +6,14 @@
 
 项目：[vadxq/nextjs-ai-starter](https://github.com/vadxq/nextjs-ai-starter)。固定快照：`2e462db0e32fc74e563f14b19c04c1b3f50ea2cb`。许可证：Apache-2.0。
 
-| 来源                                                                                                                      | 已核实事实                                                         | 对本方案的影响                                                 |
-| ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
-| [package.json](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/package.json)     | Next ^16.2.4、React ^19.2.5、TypeScript ^6.0.3、Tailwind ^4.2.4    | 推荐相同主版本系列，实施时独立验证并锁定                       |
-| 同一 package.json                                                                                                         | SWR ^2.4.1、Zustand ^5.0.13、next-intl ^4.11.0、Serwist ^9.5.11    | 体现生态方案；首版按需求取舍，不全部预装                       |
-| [README.md](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/README.md)           | App Router、主题、国际化、PWA、UI 与工程指南                       | 复用模块组织思路和工程说明方式                                 |
-| [AGENTS.md](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/AGENTS.md)           | 已有 AI 开发规则，涉及目录、命令与代码约定                         | 本项目采用根/分端 AGENTS 与公共文档，Claude 入口仅引用统一来源 |
-| [lib/http](https://github.com/vadxq/nextjs-ai-starter/tree/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/lib/http)             | SWR hooks、自研 fetch 与服务端缓存辅助层                           | 采用成熟 typed client，避免继续扩张自研 HTTP 框架              |
-| [next.config.ts](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/next.config.ts) | React Compiler、Cache Components 开关、Serwist、实验配置、图片优化 | 首版只启用经过本项目验证且确有用途的配置                       |
+| 来源                                                                                                                      | 已核实事实                                                         | 对本方案的影响                                    |
+| ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------- |
+| [package.json](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/package.json)     | Next ^16.2.4、React ^19.2.5、TypeScript ^6.0.3、Tailwind ^4.2.4    | 推荐相同主版本系列，实施时独立验证并锁定          |
+| 同一 package.json                                                                                                         | SWR ^2.4.1、Zustand ^5.0.13、next-intl ^4.11.0、Serwist ^9.5.11    | 体现生态方案；首版按需求取舍，不全部预装          |
+| [README.md](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/README.md)           | App Router、主题、国际化、PWA、UI 与工程指南                       | 复用模块组织思路和工程说明方式                    |
+| [AGENTS.md](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/AGENTS.md)           | 已有 AI 开发规则，涉及目录、命令与代码约定                         | 本项目采用根/分端 AGENTS 与公共文档作为规则入口   |
+| [lib/http](https://github.com/vadxq/nextjs-ai-starter/tree/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/lib/http)             | SWR hooks、自研 fetch 与服务端缓存辅助层                           | 采用成熟 typed client，避免继续扩张自研 HTTP 框架 |
+| [next.config.ts](https://github.com/vadxq/nextjs-ai-starter/blob/2e462db0e32fc74e563f14b19c04c1b3f50ea2cb/next.config.ts) | React Compiler、Cache Components 开关、Serwist、实验配置、图片优化 | 首版只启用经过本项目验证且确有用途的配置          |
 
 ### Next.js 值得保留的部分
 

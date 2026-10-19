@@ -190,6 +190,44 @@ async fn crud_cases(alice: &Session, bob: &Session) {
 }
 
 #[tokio::test]
+#[ignore = "requires running API; see README"]
+async fn authentication_json_errors_preserve_http_status() {
+    let base = std::env::var("TEST_API_URL").expect("TEST_API_URL");
+    let http = Client::new();
+    const OVERSIZED_FIELD_BYTES: usize = 20_000;
+    for (path, body) in [
+        (
+            "/api/v1/auth/login",
+            json!({"username":"alice","password":"a".repeat(OVERSIZED_FIELD_BYTES)}),
+        ),
+        (
+            "/api/v1/auth/refresh",
+            json!({"refreshToken":"a".repeat(OVERSIZED_FIELD_BYTES)}),
+        ),
+        (
+            "/api/v1/auth/logout",
+            json!({"refreshToken":"a".repeat(OVERSIZED_FIELD_BYTES)}),
+        ),
+    ] {
+        let response = http
+            .post(format!("{base}{path}"))
+            .json(&body)
+            .send()
+            .await
+            .unwrap();
+        problem(response, 413, "payload_too_large").await;
+        let response = http
+            .post(format!("{base}{path}"))
+            .header("content-type", "application/json")
+            .body("{")
+            .send()
+            .await
+            .unwrap();
+        problem(response, 400, "validation_error").await;
+    }
+}
+
+#[tokio::test]
 #[ignore = "requires running PostgreSQL and API with alice/bob accounts; see README"]
 async fn real_jwt_and_database_contract() {
     let base = std::env::var("TEST_API_URL").expect("TEST_API_URL");

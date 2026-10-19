@@ -14,4 +14,4 @@ Starter.xcworkspace/xcshareddata/swiftpm/*
 .build/
 build/
 DerivedData/
-.codex/
+.ailog/

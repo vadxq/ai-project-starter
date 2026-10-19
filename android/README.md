@@ -33,3 +33,7 @@ The local input is `app/openapi/openapi.json`. OpenAPI Generator produces Kotlin
 ```
 
 Native strings and plurals live in values and values-zh-rCN; app language selection uses LocaleManager. A standalone copy needs no Web project or root configuration. When adding a language, update resources and locales_config, including all error and accessibility text.
+
+## AI development
+
+Start in this directory and read [AGENTS.md](AGENTS.md). The [android-changelog example](.agents/skills/android-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.

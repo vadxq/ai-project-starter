@@ -27,10 +27,14 @@ npm run preview
 
 Generation reads `openapi/openapi.json` and writes `src/api/generated`; do not edit the output by hand. Keep these files and configuration when copying this project. No parent directory or sibling source is required. Dependencies are locked in package-lock.json. The js-yaml override selects a compatible patched version to address a known vulnerability in the generator's transitive dependencies.
 
-`npm run test:e2e` tests real sign-in and CRUD, languages and themes, narrow screens, page refresh, and logout against the production static build. Build first and start the API. Install the browser initially with `npx playwright install chromium`. Screenshots, traces, and reports are saved in this project's `.codex` directory.
+`npm run test:e2e` tests real sign-in and CRUD, languages and themes, narrow screens, page refresh, and logout against the production static build. Build first and start the API. Install the browser initially with `npx playwright install chromium`. Screenshots, traces, and reports are saved in this project's ignored `.ailog` directory.
 
 Language resources live in `src/locales`. When adding a language, supply all keys and plural forms, then update the supported language list. Theme and language are local preferences; user Items are not translated. Deploy dist in production and configure the Web server to fall back to index.html for application deep links. Match API proxy routes before this fallback so API 404 responses never become HTML.
 
 Set VITE_API_BASE_URL before running `npm run build` for production. This public setting is embedded in browser code at build time, so changes require a rebuild. Deploy `dist` to a static server.
 
 `nginx.conf` is a native Nginx example: it listens on port 8088, serves `/var/www/starter/dist`, and proxies `/api/` to `http://127.0.0.1:8080`. Adjust the directory and API address for your host, include it in Nginx's http configuration, run `nginx -t`, then start the server. By default, the client accesses the configured API URL directly. For a same-origin proxy, set VITE_API_BASE_URL to the site origin. If the upstream is unavailable, API requests return a gateway error while static pages and application deep links remain accessible.
+
+## AI development
+
+Start in this directory and read [AGENTS.md](AGENTS.md). The [spa-changelog example](.agents/skills/spa-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.

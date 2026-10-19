@@ -1,5 +1,6 @@
 use axum::{
     Json,
+    extract::rejection::JsonRejection,
     http::{StatusCode, header},
     response::{IntoResponse, Response},
 };
@@ -74,6 +75,15 @@ pub struct ApiError {
 }
 
 impl RequestContext {
+    // 所有 JSON 入口保留请求体超限语义，其余解析错误统一返回安全的校验错误。
+    pub fn json_error(&self, rejection: JsonRejection) -> ApiError {
+        self.error(if rejection.status() == StatusCode::PAYLOAD_TOO_LARGE {
+            ErrorKind::TooLarge
+        } else {
+            ErrorKind::Validation
+        })
+    }
+
     pub fn error(&self, kind: ErrorKind) -> ApiError {
         ApiError {
             context: self.clone(),

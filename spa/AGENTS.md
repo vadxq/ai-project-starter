@@ -8,4 +8,6 @@ Manage this project independently with npm, using its own README, package.json /
 - Rust authorizes private data. Clear caches on logout; never write tokens to localStorage.
 - Keep the UI concise and semantic, usable at 360 / 768 / 1440 viewports and with a keyboard. Do not put prompts or project introductions in the product UI.
 - Run npm run lint, npm run format:check, npm run typecheck, and npm run build. Once real services are running, run npm run test:e2e.
-- Do not automatically commit or push. Keep temporary evidence in .codex and report unfinished checks.
+- Do not automatically commit or push. Keep temporary evidence in .ailog and report unfinished checks.
+
+Read [README.md](README.md) for native verification commands and `openapi/openapi.json` for the local contract. Use [spa-changelog](.agents/skills/spa-changelog/SKILL.md) when asked to create or update this project's `changelog.md`. A standalone copy needs no parent instructions. Item title limits are UTF-8 bytes after ASCII trimming; Rust enforces authorization and version conflicts.

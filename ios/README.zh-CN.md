@@ -37,3 +37,7 @@ xcodebuild -workspace Starter.xcworkspace -scheme Starter \
 语言在 App/Localizable.xcstrings，初始按系统选择中英文；应用内偏好持久化。SwiftUI / Observation 管理状态，AuthSession 执行密码登录 / 刷新 / 退出，Keychain 保存 refresh token。
 
 本地 API 输入 `Packages/APIClient/Sources/APIClient/openapi.json`，通过官方 build plugin 生成 Swift 类型，不手改输出。无需仓库其他目录。Tests 包含本地 XCUITest；完整运行以 iOS18 和当前系统的 Simulator 结果为准。
+
+## AI 开发
+
+在本目录启动，读取 [AGENTS.md](AGENTS.md)。[ios-changelog 示例](.agents/skills/ios-changelog/SKILL.md) 用于按请求创建或更新本端 `changelog.md`。独立复制时保留 AGENTS.md 和隐藏的 `.agents` 目录；验证继续使用上文原生命令。临时计划与证据统一放在忽略的 `.ailog`，无需父仓库文件或个人模型/MCP 配置。

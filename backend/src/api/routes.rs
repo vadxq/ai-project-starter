@@ -22,14 +22,6 @@ use super::{
     error::{ApiError, ErrorKind, Problem},
 };
 
-fn json_error(context: &RequestContext, rejection: JsonRejection) -> ApiError {
-    context.error(if rejection.status() == StatusCode::PAYLOAD_TOO_LARGE {
-        ErrorKind::TooLarge
-    } else {
-        ErrorKind::Validation
-    })
-}
-
 #[utoipa::path(get, path = "/health", operation_id = "health", responses((status = 200, body = Health)))]
 pub async fn health() -> Json<Health> {
     Json(Health {
@@ -79,7 +71,7 @@ pub async fn create(
     auth: Authenticated,
     input: Result<Json<CreateItem>, JsonRejection>,
 ) -> Result<Response, ApiError> {
-    let Json(input) = input.map_err(|error| json_error(&auth.context, error))?;
+    let Json(input) = input.map_err(|error| auth.context.json_error(error))?;
     let title =
         normalize_title(&input.title).ok_or_else(|| auth.context.error(ErrorKind::Validation))?;
     let item = items::create(
@@ -122,7 +114,7 @@ pub async fn update(
     input: Result<Json<UpdateItem>, JsonRejection>,
 ) -> Result<Json<Item>, ApiError> {
     let Path(id) = id.map_err(|_| auth.context.error(ErrorKind::Validation))?;
-    let Json(input) = input.map_err(|error| json_error(&auth.context, error))?;
+    let Json(input) = input.map_err(|error| auth.context.json_error(error))?;
     if input.version < 1 || (input.title.is_none() && input.completed.is_none()) {
         return Err(auth.context.error(ErrorKind::Validation));
     }

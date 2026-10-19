@@ -29,4 +29,8 @@ Set NEXT_PUBLIC_API_BASE_URL before running `npm run build` for production. Depl
 
 API input and generation configuration live in this project's `openapi` directory and `openapi-ts.config.ts`. The SDK is in `src/api/generated`; do not edit it by hand. Language resources use locally maintained next-intl ICU messages. The locale layout updates translations without clearing root authentication state when switching languages.
 
-After starting the real API and building the project, `npm run test:e2e` checks real password login and CRUD, both languages and themes, refresh, logout, responsive pages, and SSR. Initially, run `npx playwright install chromium`. Results are saved in this project's `.codex` directory.
+After starting the real API and building the project, `npm run test:e2e` checks real password login and CRUD, both languages and themes, refresh, logout, responsive pages, and SSR. Initially, run `npx playwright install chromium`. Results are saved in this project's ignored `.ailog` directory.
+
+## AI development
+
+Start in this directory and read [AGENTS.md](AGENTS.md). The [next-changelog example](.agents/skills/next-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Preserve public SSR and browser-only private authentication. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.

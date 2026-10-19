@@ -3,7 +3,7 @@
 !.env.example
 node_modules/
 dist/
-.codex/
+.ailog/
 test-results/
 playwright-report/
 *.tsbuildinfo

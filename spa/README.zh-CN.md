@@ -27,7 +27,11 @@ npm run preview
 
 生成输入 `openapi/openapi.json`，输出 `src/api/generated`，不可手改。复制本端时这些文件和配置全部保留，无需父目录或其他端源码。依赖锁定在 package-lock.json；js-yaml override 用兼容修复版本消除生成器传递依赖的已知漏洞。
 
-`npm run test:e2e` 在生产静态产物上执行真实登录 / CRUD、语言 / 主题、窄屏与刷新 / 注销。需先 build 并启动 API；首次浏览器准备可用 `npx playwright install chromium`。本端 `.codex` 保存截图、trace 和报告。
+`npm run test:e2e` 在生产静态产物上执行真实登录 / CRUD、语言 / 主题、窄屏与刷新 / 注销。需先 build 并启动 API；首次浏览器准备可用 `npx playwright install chromium`。本端被 Git 忽略的 `.ailog` 保存截图、trace 和报告。
+
+## AI 开发
+
+在本目录启动，读取 [AGENTS.md](AGENTS.md)。[spa-changelog 示例](.agents/skills/spa-changelog/SKILL.md) 用于按请求创建或更新本端 `changelog.md`。独立复制时保留 AGENTS.md 和隐藏的 `.agents` 目录；验证继续使用上文原生命令。临时计划与证据统一放在忽略的 `.ailog`，无需父仓库文件或个人模型/MCP 配置。
 
 语言资源位于 `src/locales`，新增语言时补齐全部 key / 复数，再更新支持列表。主题和语言是本地偏好；用户事项不翻译。生产部署使用 dist，Web server 对业务深链回退 index.html；API 代理必须先于回退匹配，不能把 API 404 变成 HTML。
 

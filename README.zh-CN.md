@@ -38,8 +38,14 @@ AI 从 [AGENTS.md](AGENTS.md) 和目标工程规则开始，按 [实施计划](d
 
 根 scripts 只提供完整仓库内的辅助操作。各端原生的构建、检查和测试命令仍是独立使用入口。真实认证 / 数据库测试需要启动本地服务；签名、生产部署和商店上架不包含在首版中。
 
-例如 `bash scripts/verify.sh spa`、`bash scripts/verify.sh backend` 或 `bash scripts/contracts.sh check`。Web 测试需要实际 API；Android 需要 Emulator 和 adb reverse；iOS 指定 `IOS_DESTINATION='platform=iOS Simulator,id=<UUID>'`。脚本不安装系统工具或更改个人配置。
+例如 `bash scripts/verify.sh spa quick`、`bash scripts/verify.sh backend full` 或 `bash scripts/contracts.sh check`。必须显式指定模式：quick 执行静态/构建检查，full 追加本端真实集成；backend full 构建前要求 TEST_API_URL / JWT_SECRET。Web 需要实际 API；Android 需要 Emulator 和 adb reverse；iOS 指定 `IOS_DESTINATION='platform=iOS Simulator,id=<UUID>'`。单个 full 结果不替代完整发布矩阵。
 
-v0.1.0 已完成五端实现和本地验收，具体命令、结果与适用范围见 [验收记录](docs/verification/2026-10-05-v0.1.0.md)。生产服务地址、签名和部署由实际项目配置。
+五端已实现；JWT 改造的可执行检查结果见 [JWT 验收报告](docs/verification/2026-10-05-jwt-auth.md)，Android 真实运行与当前移动系统矩阵尚未完成。当前验收状态以 [交付计划](docs/v0.1.0/delivery-plan.md) 为准，历史报告仅适用于其明确范围。生产服务地址、签名和部署由实际项目配置。
+
+## AI 开发
+
+每个工程携带 AGENTS.md 和一个本地 `.agents/skills/<project>-changelog` 示例，用于编写本端 `changelog.md`；根 [update-changelog](.agents/skills/update-changelog/SKILL.md) 示例维护仓库日志。日志不存在时初始化，存在时合并已确认的实际变更。验证继续使用各端 README 和交付计划中的原生命令。使用方式与范围见 [AI 工作流](docs/ai-workflows.md)。
+
+临时计划、日志、测试报告和任务缓存统一写入 Git 忽略的 `.ailog`。模板不依赖个人模型、凭证或 MCP 安装。
 
 参考 [vadxq/nextjs-ai-starter](https://github.com/vadxq/nextjs-ai-starter) 与 [vadxq/rust-axum-starter](https://github.com/vadxq/rust-axum-starter)，取舍与固定参考提交见 [参考分析](docs/v0.1.0/references.md)。许可证为 Apache-2.0。

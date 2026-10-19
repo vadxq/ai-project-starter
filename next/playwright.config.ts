@@ -5,8 +5,8 @@ export default defineConfig({
   timeout: 45_000,
   retries: 0,
   workers: 1,
-  outputDir: '.codex/test-results',
-  reporter: [['list'], ['html', { open: 'never', outputFolder: '.codex/playwright-report' }]],
+  outputDir: '.ailog/test-results',
+  reporter: [['list'], ['html', { open: 'never', outputFolder: '.ailog/playwright-report' }]],
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',

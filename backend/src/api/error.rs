@@ -1,145 +1,119 @@
-use axum::{
-    Json,
-    extract::rejection::JsonRejection,
-    http::{StatusCode, header},
-    response::{IntoResponse, Response},
-};
-use serde::{Deserialize, Serialize};
+//! API 对外错误模型与通用转换。
+
+use axum::{Json, http::StatusCode, response::IntoResponse};
+use serde::Serialize;
 use utoipa::ToSchema;
 
-use crate::{domain::items::StoreError, platform::auth::AuthError};
+/// handler 与 service 统一使用的结果类型。
+pub type AppResult<T> = Result<T, AppError>;
 
-use super::context::RequestContext;
-
-#[derive(Clone, Copy, Debug)]
-pub enum ErrorKind {
-    Validation,
-    Unauthorized,
-    InvalidCredentials,
-    Forbidden,
-    NotFound,
-    MethodNotAllowed,
-    Conflict,
-    TooLarge,
-    Unavailable,
-    Internal,
+#[derive(Debug, Clone)]
+/// 业务错误对象，会被统一序列化为 JSON 响应。
+pub struct AppError {
+    pub status: StatusCode,
+    pub message: String,
+    pub details: Option<serde_json::Value>,
 }
 
-impl ErrorKind {
-    pub fn status(self) -> StatusCode {
-        match self {
-            Self::Validation => StatusCode::BAD_REQUEST,
-            Self::Unauthorized | Self::InvalidCredentials => StatusCode::UNAUTHORIZED,
-            Self::Forbidden => StatusCode::FORBIDDEN,
-            Self::NotFound => StatusCode::NOT_FOUND,
-            Self::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
-            Self::Conflict => StatusCode::CONFLICT,
-            Self::TooLarge => StatusCode::PAYLOAD_TOO_LARGE,
-            Self::Unavailable => StatusCode::SERVICE_UNAVAILABLE,
-            Self::Internal => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-
-    pub fn code(self) -> &'static str {
-        match self {
-            Self::Validation => "validation_error",
-            Self::Unauthorized => "unauthorized",
-            Self::InvalidCredentials => "invalid_credentials",
-            Self::Forbidden => "forbidden",
-            Self::NotFound => "not_found",
-            Self::MethodNotAllowed => "method_not_allowed",
-            Self::Conflict => "version_conflict",
-            Self::TooLarge => "payload_too_large",
-            Self::Unavailable => "service_unavailable",
-            Self::Internal => "internal_error",
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Problem {
-    pub r#type: String,
-    pub title: String,
-    pub status: u16,
+#[derive(Debug, Serialize, ToSchema)]
+pub struct ErrorResponse {
     pub code: String,
-    pub detail: String,
-    pub instance: String,
-    pub request_id: String,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(value_type = ErrorDetails, nullable = false)]
+    pub details: Option<serde_json::Value>,
 }
 
-#[derive(Debug)]
-pub struct ApiError {
-    pub context: RequestContext,
-    pub kind: ErrorKind,
+/// 上游 details 的已知字段，仅补充契约元数据，运行时仍保留可扩展 JSON 对象。
+#[derive(Debug, Serialize, ToSchema)]
+pub struct ErrorDetails {
+    pub reason: Option<String>,
+    pub rejection: Option<String>,
+    pub source_status: Option<u16>,
+    pub error: Option<String>,
 }
 
-impl RequestContext {
-    // 所有 JSON 入口保留请求体超限语义，其余解析错误统一返回安全的校验错误。
-    pub fn json_error(&self, rejection: JsonRejection) -> ApiError {
-        self.error(if rejection.status() == StatusCode::PAYLOAD_TOO_LARGE {
-            ErrorKind::TooLarge
-        } else {
-            ErrorKind::Validation
-        })
+impl AppError {
+    /// 创建 400 错误。
+    pub fn bad_request(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::BAD_REQUEST, message)
     }
 
-    pub fn error(&self, kind: ErrorKind) -> ApiError {
-        ApiError {
-            context: self.clone(),
-            kind,
+    /// 创建 401 错误。
+    pub fn unauthorized(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::UNAUTHORIZED, message)
+    }
+
+    pub fn forbidden(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::FORBIDDEN, message)
+    }
+
+    pub fn method_not_allowed(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::METHOD_NOT_ALLOWED, message)
+    }
+
+    pub fn not_found(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::NOT_FOUND, message)
+    }
+
+    pub fn conflict(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::CONFLICT, message)
+    }
+
+    pub fn internal(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::INTERNAL_SERVER_ERROR, message)
+    }
+
+    pub fn unavailable(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, message)
+    }
+
+    /// 附加结构化错误详情，便于前端或测试定位原因。
+    pub fn with_details(self, details: serde_json::Value) -> Self {
+        Self {
+            details: Some(details),
+            ..self
         }
     }
 
-    pub fn store_error(&self, error: StoreError) -> ApiError {
-        let kind = match error {
-            StoreError::NotFound => ErrorKind::NotFound,
-            StoreError::Conflict => ErrorKind::Conflict,
-            StoreError::Database(error) => {
-                // 不记录数据库 URL 或参数；requestId 将服务器故障和客户端报告关联。
-                tracing::error!(event = "database_operation_failed", request_id = %self.id, category = ?error.as_database_error().map(|e| e.code()));
-                ErrorKind::Unavailable
-            }
-        };
-        self.error(kind)
-    }
-
-    pub fn auth_error(&self, error: AuthError) -> ApiError {
-        self.error(match error {
-            AuthError::Invalid => ErrorKind::Unauthorized,
-            AuthError::Credentials => ErrorKind::InvalidCredentials,
-            AuthError::Validation => ErrorKind::Validation,
-            AuthError::Database(_) => ErrorKind::Unavailable,
-            AuthError::Internal => ErrorKind::Internal,
-        })
+    pub fn new(status: StatusCode, message: impl Into<String>) -> Self {
+        Self {
+            status,
+            message: message.into(),
+            details: None,
+        }
     }
 }
 
-impl IntoResponse for ApiError {
-    fn into_response(self) -> Response {
-        let status = self.kind.status();
-        let code = self.kind.code();
-        let title = rust_i18n::t!(code, locale = self.context.locale).into_owned();
-        let problem = Problem {
-            r#type: format!("urn:ai-project-starter:problem:{code}"),
-            title: title.clone(),
-            detail: title,
-            status: status.as_u16(),
-            code: code.to_owned(),
-            instance: self.context.path,
-            request_id: self.context.id.to_string(),
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        // 对外只暴露统一错误结构，避免 handler 各自拼装响应格式。
+        let body = ErrorResponse {
+            code: self.status.as_u16().to_string(),
+            message: self.message,
+            details: self.details,
         };
-        let mut response = (status, Json(problem)).into_response();
-        response.headers_mut().insert(
-            header::CONTENT_TYPE,
-            header::HeaderValue::from_static("application/problem+json"),
-        );
-        if status == StatusCode::UNAUTHORIZED {
+        let mut response = (self.status, Json(body)).into_response();
+        if self.status == StatusCode::UNAUTHORIZED {
             response.headers_mut().insert(
-                header::WWW_AUTHENTICATE,
-                header::HeaderValue::from_static("Bearer"),
+                axum::http::header::WWW_AUTHENTICATE,
+                axum::http::HeaderValue::from_static("Bearer"),
             );
         }
         response
+    }
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(value: sqlx::Error) -> Self {
+        tracing::error!(error = %value, "database error");
+        Self::internal("database error")
+    }
+}
+
+impl From<anyhow::Error> for AppError {
+    fn from(value: anyhow::Error) -> Self {
+        tracing::error!(error = %value, "internal error");
+        Self::internal("internal server error")
     }
 }

@@ -1,35 +1,37 @@
 [package]
-name = "starter-api"
+name = "rust-axum-starter"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.99"
 license = "Apache-2.0"
-default-run = "starter-api"
+rust-version = "1.94"
+default-run = "rust-axum-starter"
 
 [dependencies]
-argon2 = "0.5.3"
-axum = { version = "0.8.8", features = ["macros"] }
-chrono = { version = "0.4.44", features = ["serde"] }
+anyhow = "1.0.104"
+axum = "0.8.9"
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde"] }
+config = { version = "0.15.27", default-features = false }
 dotenvy = "0.15.7"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "tls-rustls-ring", "postgres", "mysql", "chrono", "migrate", "uuid", "macros"] }
+tokio = { version = "1.54.0", features = ["macros", "rt-multi-thread", "signal", "net", "time"] }
+tower = { version = "0.5.3", features = ["util"] }
+tower-http = { version = "0.7.1", features = ["trace", "cors", "request-id"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
+argon2 = "0.5.3"
 jsonwebtoken = "9.3.1"
 rand_core = { version = "0.6", features = ["getrandom"] }
 rust-i18n = "3.1.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 sha2 = "0.10"
-sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "macros", "migrate"] }
 thiserror = "2.0"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "sync", "time"] }
-tower-http = { version = "0.6", features = ["cors", "limit"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 utoipa = { version = "5.4", features = ["axum_extras", "uuid", "chrono"] }
 uuid = { version = "1", features = ["v4", "serde"] }
-url = "2.5"
 
 [dev-dependencies]
+serial_test = "4.0.1"
 reqwest = { version = "0.12.28", default-features = false, features = ["json", "rustls-tls"] }
-regex = "1"
 
-[profile.release]
-lto = "thin"
+[lints.rust]
+unsafe_code = "forbid"

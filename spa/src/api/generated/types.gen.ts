@@ -12,7 +12,26 @@ export type CreateItem = {
     title: string;
 };
 
-export type Health = {
+/**
+ * 上游 details 的已知字段，仅补充契约元数据，运行时仍保留可扩展 JSON 对象。
+ */
+export type ErrorDetails = {
+    error?: string | null;
+    reason?: string | null;
+    rejection?: string | null;
+    source_status?: number | null;
+};
+
+export type ErrorResponse = {
+    code: string;
+    details?: ErrorDetails;
+    message: string;
+};
+
+/**
+ * `/health` 的响应体。
+ */
+export type HealthResponse = {
     status: string;
 };
 
@@ -23,10 +42,10 @@ export type Identity = {
 
 export type Item = {
     completed: boolean;
-    createdAt: string;
+    createdAt: number;
     id: string;
     title: string;
-    updatedAt: string;
+    updatedAt: number;
     version: number;
 };
 
@@ -42,18 +61,106 @@ export type LoginRequest = {
     username: string;
 };
 
-export type Problem = {
-    code: string;
-    detail: string;
-    instance: string;
-    requestId: string;
-    status: number;
-    title: string;
-    type: string;
+/**
+ * `/ready` 的响应体。
+ */
+export type ReadyResponse = {
+    database: string;
+    ready: boolean;
 };
 
 export type RefreshRequest = {
     refreshToken: string;
+};
+
+/**
+ * 对外统一的成功响应结构。
+ */
+export type SuccessResponseHealthResponse = {
+    /**
+     * HTTP 状态码字符串，例如 `"200"`。
+     */
+    code: string;
+    data: HealthResponse;
+    /**
+     * 成功消息，当前统一固定为 `success`。
+     */
+    message: string;
+};
+
+/**
+ * 对外统一的成功响应结构。
+ */
+export type SuccessResponseIdentity = {
+    /**
+     * HTTP 状态码字符串，例如 `"200"`。
+     */
+    code: string;
+    data: Identity;
+    /**
+     * 成功消息，当前统一固定为 `success`。
+     */
+    message: string;
+};
+
+/**
+ * 对外统一的成功响应结构。
+ */
+export type SuccessResponseItem = {
+    /**
+     * HTTP 状态码字符串，例如 `"200"`。
+     */
+    code: string;
+    data: Item;
+    /**
+     * 成功消息，当前统一固定为 `success`。
+     */
+    message: string;
+};
+
+/**
+ * 对外统一的成功响应结构。
+ */
+export type SuccessResponseItemPage = {
+    /**
+     * HTTP 状态码字符串，例如 `"200"`。
+     */
+    code: string;
+    data: ItemPage;
+    /**
+     * 成功消息，当前统一固定为 `success`。
+     */
+    message: string;
+};
+
+/**
+ * 对外统一的成功响应结构。
+ */
+export type SuccessResponseReadyResponse = {
+    /**
+     * HTTP 状态码字符串，例如 `"200"`。
+     */
+    code: string;
+    data: ReadyResponse;
+    /**
+     * 成功消息，当前统一固定为 `success`。
+     */
+    message: string;
+};
+
+/**
+ * 对外统一的成功响应结构。
+ */
+export type SuccessResponseTokenResponse = {
+    /**
+     * HTTP 状态码字符串，例如 `"200"`。
+     */
+    code: string;
+    data: TokenResponse;
+    /**
+     * 成功消息，当前统一固定为 `success`。
+     */
+    message: string;
 };
 
 export type TokenResponse = {
@@ -84,16 +191,18 @@ export type LoginData = {
 };
 
 export type LoginErrors = {
-    400: Problem;
-    401: Problem;
-    413: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    413: ErrorResponse;
+    415: ErrorResponse;
+    422: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type LoginError = LoginErrors[keyof LoginErrors];
 
 export type LoginResponses = {
-    200: TokenResponse;
+    200: SuccessResponseTokenResponse;
 };
 
 export type LoginResponse = LoginResponses[keyof LoginResponses];
@@ -106,10 +215,12 @@ export type LogoutData = {
 };
 
 export type LogoutErrors = {
-    400: Problem;
-    401: Problem;
-    413: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    413: ErrorResponse;
+    415: ErrorResponse;
+    422: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type LogoutError = LogoutErrors[keyof LogoutErrors];
@@ -128,16 +239,18 @@ export type RefreshSessionData = {
 };
 
 export type RefreshSessionErrors = {
-    400: Problem;
-    401: Problem;
-    413: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    413: ErrorResponse;
+    415: ErrorResponse;
+    422: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type RefreshSessionError = RefreshSessionErrors[keyof RefreshSessionErrors];
 
 export type RefreshSessionResponses = {
-    200: TokenResponse;
+    200: SuccessResponseTokenResponse;
 };
 
 export type RefreshSessionResponse = RefreshSessionResponses[keyof RefreshSessionResponses];
@@ -153,16 +266,16 @@ export type ListItemsData = {
 };
 
 export type ListItemsErrors = {
-    400: Problem;
-    401: Problem;
-    403: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    403: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type ListItemsError = ListItemsErrors[keyof ListItemsErrors];
 
 export type ListItemsResponses = {
-    200: ItemPage;
+    200: SuccessResponseItemPage;
 };
 
 export type ListItemsResponse = ListItemsResponses[keyof ListItemsResponses];
@@ -175,17 +288,19 @@ export type CreateItemData = {
 };
 
 export type CreateItemErrors = {
-    400: Problem;
-    401: Problem;
-    403: Problem;
-    413: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    403: ErrorResponse;
+    413: ErrorResponse;
+    415: ErrorResponse;
+    422: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type CreateItemError = CreateItemErrors[keyof CreateItemErrors];
 
 export type CreateItemResponses = {
-    201: Item;
+    201: SuccessResponseItem;
 };
 
 export type CreateItemResponse = CreateItemResponses[keyof CreateItemResponses];
@@ -202,12 +317,12 @@ export type DeleteItemData = {
 };
 
 export type DeleteItemErrors = {
-    400: Problem;
-    401: Problem;
-    403: Problem;
-    404: Problem;
-    409: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    403: ErrorResponse;
+    404: ErrorResponse;
+    409: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type DeleteItemError = DeleteItemErrors[keyof DeleteItemErrors];
@@ -231,17 +346,17 @@ export type GetItemData = {
 };
 
 export type GetItemErrors = {
-    400: Problem;
-    401: Problem;
-    403: Problem;
-    404: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    403: ErrorResponse;
+    404: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type GetItemError = GetItemErrors[keyof GetItemErrors];
 
 export type GetItemResponses = {
-    200: Item;
+    200: SuccessResponseItem;
 };
 
 export type GetItemResponse = GetItemResponses[keyof GetItemResponses];
@@ -256,19 +371,21 @@ export type UpdateItemData = {
 };
 
 export type UpdateItemErrors = {
-    400: Problem;
-    401: Problem;
-    403: Problem;
-    404: Problem;
-    409: Problem;
-    413: Problem;
-    503: Problem;
+    400: ErrorResponse;
+    401: ErrorResponse;
+    403: ErrorResponse;
+    404: ErrorResponse;
+    409: ErrorResponse;
+    413: ErrorResponse;
+    415: ErrorResponse;
+    422: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type UpdateItemError = UpdateItemErrors[keyof UpdateItemErrors];
 
 export type UpdateItemResponses = {
-    200: Item;
+    200: SuccessResponseItem;
 };
 
 export type UpdateItemResponse = UpdateItemResponses[keyof UpdateItemResponses];
@@ -281,15 +398,15 @@ export type GetMeData = {
 };
 
 export type GetMeErrors = {
-    401: Problem;
-    403: Problem;
-    503: Problem;
+    401: ErrorResponse;
+    403: ErrorResponse;
+    503: ErrorResponse;
 };
 
 export type GetMeError = GetMeErrors[keyof GetMeErrors];
 
 export type GetMeResponses = {
-    200: Identity;
+    200: SuccessResponseIdentity;
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
@@ -302,10 +419,10 @@ export type HealthData = {
 };
 
 export type HealthResponses = {
-    200: Health;
+    200: SuccessResponseHealthResponse;
 };
 
-export type HealthResponse = HealthResponses[keyof HealthResponses];
+export type HealthResponse2 = HealthResponses[keyof HealthResponses];
 
 export type ReadyData = {
     body?: never;
@@ -315,13 +432,13 @@ export type ReadyData = {
 };
 
 export type ReadyErrors = {
-    503: Problem;
+    503: ErrorResponse;
 };
 
 export type ReadyError = ReadyErrors[keyof ReadyErrors];
 
 export type ReadyResponses = {
-    200: Health;
+    200: SuccessResponseReadyResponse;
 };
 
-export type ReadyResponse = ReadyResponses[keyof ReadyResponses];
+export type ReadyResponse2 = ReadyResponses[keyof ReadyResponses];

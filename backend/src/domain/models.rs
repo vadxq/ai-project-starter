@@ -1,4 +1,4 @@
-use chrono::{DateTime, SecondsFormat, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize, Serializer};
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
@@ -7,7 +7,7 @@ pub const MAX_TITLE_BYTES: usize = 240;
 pub const MAX_PAGE_SIZE: i64 = 100;
 
 fn timestamp<S: Serializer>(value: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error> {
-    serializer.serialize_str(&value.to_rfc3339_opts(SecondsFormat::Millis, true))
+    serializer.serialize_i64(value.timestamp_millis())
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
@@ -25,8 +25,10 @@ pub struct Item {
     pub completed: bool,
     pub version: i32,
     #[serde(serialize_with = "timestamp")]
+    #[schema(value_type = i64, format = Int64)]
     pub created_at: DateTime<Utc>,
     #[serde(serialize_with = "timestamp")]
+    #[schema(value_type = i64, format = Int64)]
     pub updated_at: DateTime<Utc>,
 }
 

@@ -24,6 +24,8 @@ final class StarterUITests: XCTestCase {
         add(screenshot)
         app.buttons["preferences"].tap()
         app.buttons["English"].tap()
+        // 等待系统菜单退出，避免新系统上的关闭动画吞掉首次输入框点击。
+        XCTAssertTrue(app.buttons["English"].waitForNonExistence(timeout: 5))
         app.buttons["preferences"].tap()
         app.buttons["System"].tap()
     }
@@ -42,7 +44,9 @@ final class StarterUITests: XCTestCase {
         XCTAssertTrue(app.buttons["sign-in"].waitForExistence(timeout: 10))
         let username = app.textFields["username"]
         XCTAssertTrue(username.waitForExistence(timeout: 10))
+        XCTAssertTrue(username.wait(for: \.isHittable, toEqual: true, timeout: 5))
         username.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
         username.typeText("alice")
         let password = app.secureTextFields["password"]
         password.tap()

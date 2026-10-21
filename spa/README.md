@@ -38,3 +38,5 @@ Set VITE_API_BASE_URL before running `npm run build` for production. This public
 ## AI development
 
 Start in this directory and read [AGENTS.md](AGENTS.md). The [spa-changelog example](.agents/skills/spa-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.
+
+API contract: success responses use code/message/data; errors use code/message/details with HTTP status strings and optional details.reason; Item dates use epoch milliseconds. The local generated client and handwritten connector must be updated together.

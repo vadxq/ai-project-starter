@@ -38,3 +38,5 @@ npm run preview
 生产构建前设置 VITE_API_BASE_URL，再执行 `npm run build`；这些公开配置在构建时写入浏览器代码，变更后需要重新构建。将 `dist` 部署到静态服务器即可。
 
 `nginx.conf` 提供原生 Nginx 示例：监听8088，静态目录 `/var/www/starter/dist`，`/api/` 转发到 `http://127.0.0.1:8080`。按目标主机调整目录和 API 地址，纳入 Nginx 的 http 配置并执行 `nginx -t` 后启动。默认客户端直接访问配置的 API URL；使用同源代理时，将 VITE_API_BASE_URL 设置为站点 origin。上游暂不可达时返回网关错误，静态页面和业务深链仍可访问。
+
+API 契约：成功响应为 code/message/data，错误为 code/message/details，code 是 HTTP 状态字符串，details.reason 为可选业务键；Item 日期为 epoch 毫秒。更新本地生成客户端时同步调整手写连接器。

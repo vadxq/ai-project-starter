@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "title": "Items",
+    "description": "Manage your personal items."
+  },
+  "navigation": {
+    "label": "Main navigation",
+    "docs": "Documentation",
+    "language": "Language",
+    "skip": "Skip to content"
+  },
+  "theme": {
+    "label": "Change theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "error": {
+    "title": "Something went wrong.",
+    "description": "Please try again.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found.",
+    "description": "This page may have moved or no longer exists.",
+    "home": "Back to home"
+  },
+  "app": "Items",
+  "signIn": "Sign in",
+  "signOut": "Sign out",
+  "welcome": "Sign in",
+  "welcomeBody": "Manage your items.",
+  "language": "Language",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "loading": "Loading…",
+  "add": "Add item",
+  "title": "Item title",
+  "placeholder": "What needs to be done?",
+  "empty": "No items yet",
+  "emptyBody": "Add your first item above.",
+  "edit": "Edit",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "confirmDelete": "Delete this item?",
+  "complete": "Mark complete",
+  "reopen": "Mark incomplete",
+  "retry": "Try again",
+  "previous": "Previous",
+  "next": "Next",
+  "updated": "Updated {date}",
+  "invalidTitle": "Enter a title between 1 and 240 UTF-8 bytes.",
+  "validation_error": "Check the fields and try again.",
+  "unauthorized": "Your session has ended. Sign in again.",
+  "forbidden": "Your account does not have access.",
+  "not_found": "This item is no longer available.",
+  "version_conflict": "This item changed elsewhere. Refresh and try again.",
+  "payload_too_large": "The request is too large.",
+  "service_unavailable": "The service is unavailable. Try again shortly.",
+  "network_error": "Could not connect. Check your connection and try again.",
+  "auth_error": "Sign-in could not be completed. Try again.",
+  "unknown_error": "Something went wrong. Try again.",
+  "back": "Back to items",
+  "count": "{count, plural, one {# item} other {# items}}",
+  "username": "Username",
+  "password": "Password",
+  "invalid_credentials": "Incorrect username or password.",
+  "compact": "Compact layout"
+}

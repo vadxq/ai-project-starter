@@ -1,49 +1,27 @@
-use std::sync::Arc;
-
-use starter_api::{
-    AppState, api,
-    platform::{auth::TokenService, config::Config, database},
-};
-use tracing_subscriber::EnvFilter;
+use rust_axum_starter::platform::{config::Settings, telemetry::init_tracing};
+use rust_axum_starter::{api, bootstrap::build_state, platform};
+use tracing::info;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if let Err(error) = dotenvy::dotenv()
-        && !error.not_found()
-    {
-        return Err(error.into());
-    }
-    tracing_subscriber::fmt()
-        .json()
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
-        )
-        .init();
-    let config = Config::load()?;
-    let pool = database::connect(&config.database_url).await?;
-    // 迁移必须先显式执行；缺表时不能以健康进程伪装成可用业务服务。
-    sqlx::query("SELECT id FROM accounts LIMIT 0")
-        .execute(&pool)
-        .await?;
-    let tokens = Arc::new(TokenService::new(&config.jwt_secret)?);
-    let state = AppState {
-        pool: pool.clone(),
-        tokens,
-    };
-    let listener = tokio::net::TcpListener::bind(config.bind_address).await?;
-    tracing::info!(event = "server_started", address = %config.bind_address);
-    axum::serve(listener, api::router(state, config.cors_origins))
-        .with_graceful_shutdown(shutdown())
-        .await?;
-    pool.close().await;
-    Ok(())
-}
+async fn main() -> anyhow::Result<()> {
+    // 启动顺序固定为：加载配置、初始化日志、组装状态、启动 HTTP 服务。
+    let settings = Settings::load()?;
+    init_tracing(&settings)?;
 
-async fn shutdown() {
-    let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-        .expect("SIGTERM handler");
-    tokio::select! {
-        result = tokio::signal::ctrl_c() => result.expect("SIGINT handler"),
-        _ = terminate.recv() => {},
+    let state = build_state(&settings)?;
+    let app = api::router::router(state.clone());
+
+    // 监听完成后统一接入优雅退出信号，避免中断正在处理的请求。
+    let listener = tokio::net::TcpListener::bind(settings.http.bind_addr).await?;
+    info!(bind_addr = %listener.local_addr()?, "api listening");
+
+    axum::serve(listener, app)
+        .with_graceful_shutdown(platform::shutdown_signal())
+        .await?;
+
+    if let Some(database) = state.health.database {
+        database.close().await;
     }
+
+    Ok(())
 }

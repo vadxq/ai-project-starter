@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct ContentView: View {
@@ -114,7 +115,7 @@ struct ContentView: View {
                 .accessibilityLabel(preferences.text(item.completed ? "reopen" : "complete"))
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.title).strikethrough(item.completed).foregroundStyle(item.completed ? .secondary : .primary)
-                Text(item.updatedAt, format: .dateTime.year().month().day()).font(.caption).foregroundStyle(.secondary)
+                Text(Date(timeIntervalSince1970: Double(item.updatedAt) / 1000), format: .dateTime.year().month().day()).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             Menu {

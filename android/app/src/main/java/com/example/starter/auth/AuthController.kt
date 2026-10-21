@@ -42,13 +42,13 @@ class AuthController(context: Context) {
     }
 
     suspend fun signIn(username: String, password: String): Unit = mutex.withLock {
-        accept(apiResult(api.login(LoginRequest(username = username, password = password))))
+        accept(apiResult(api.login(LoginRequest(username = username, password = password))).data)
     }
 
     suspend fun accessToken(): String = mutex.withLock {
         val token: String = refresh ?: throw AuthenticationRequired()
         if (access == null || System.currentTimeMillis() >= expiresAt - 30_000) {
-            try { accept(apiResult(api.refreshSession(RefreshRequest(token)))) }
+            try { accept(apiResult(api.refreshSession(RefreshRequest(token))).data) }
             catch (error: ApiFailure) { if (error.status == 401) clear(); throw error }
         }
         access ?: throw AuthenticationRequired()

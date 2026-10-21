@@ -1,22 +1,15 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',
-  timeout: 45_000,
-  retries: 0,
+  testDir: './tests/e2e',
+  outputDir: './.ailog/test-results',
+  fullyParallel: false,
   workers: 1,
-  outputDir: '.ailog/test-results',
-  reporter: [['list'], ['html', { open: 'never', outputFolder: '.ailog/playwright-report' }]],
-  use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-  },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure' },
   webServer: {
     command: 'npm run start',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3000/en',
     reuseExistingServer: false,
-    timeout: 30_000,
+    timeout: 60_000,
   },
 });

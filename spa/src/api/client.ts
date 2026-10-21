@@ -1,6 +1,7 @@
 import { createClient, createConfig } from './generated/client';
 import { accessToken, authManager } from '../auth/manager';
 import { readConfig } from '../config';
+import { serverErrorCode } from './problem';
 
 export class ApiFailure extends Error {
   readonly code: string;
@@ -32,13 +33,7 @@ api.interceptors.error.use(
     if (!response) return new ApiFailure({ code: 'network_error', status: 0, requestId: null });
     if (response.status === 401)
       authManager().reject(request?.headers.get('Authorization')?.slice(7) ?? '');
-    const code: string =
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      typeof error.code === 'string'
-        ? error.code
-        : 'unknown_error';
+    const code: string = serverErrorCode(error, response.status);
     return new ApiFailure({
       code,
       status: response.status,

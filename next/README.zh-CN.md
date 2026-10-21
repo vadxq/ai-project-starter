@@ -1,8 +1,12 @@
-# Next.js App Router
+# Next.js 应用
 
-[English](README.md) | 简体中文
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-独立 npm 工程，Node24 / npm11、Next16、React19。公共 locale 页面由服务器渲染，私有事项由 Client Components 请求 Rust。Next 不连接业务数据库或存储用户 token。
+以上游 nextjs-ai-starter 的 81e089fbcc06a237353e2107bd578d20567dfba3 为基础。使用 Next 16.4.2 / React 19.3.1、Tailwind 4、shadcn/ui、next-intl、next-themes 和 Zustand。公共语言页面由服务端渲染，私有 Client Components 直接请求 Rust。
+
+## 启动
+
+使用 Node 24.22.0 与 npm 12.2.0。本目录独立使用 npm 和自己的锁文件。
 
 ```sh
 cp -n .env.example .env.local
@@ -10,27 +14,44 @@ npm ci
 npm run dev
 ```
 
-默认 `http://localhost:3000`；locale 路径为 `/en`、`/zh-CN`，业务页面为 `/{locale}/items`。唯一必填公开配置为 NEXT_PUBLIC_API_BASE_URL。登录表单直接调用 Rust API，没有认证回调路由。
+NEXT_PUBLIC_API_BASE_URL 为 Rust API 地址，NEXT_PUBLIC_APP_URL 为应用公开 origin。两者在构建时写入公开产物，修改后需重新构建。语言路由为 /en、/zh-CN；私有工作区为 /{locale}/items。
 
-先按 backend 文档创建本地账号，例如 alice / starter-password。access token 只在内存，refresh token 存当前标签页 sessionStorage。页面刷新通过轮换恢复会话，关闭标签页需重新登录；退出或认证失效清 Query cache。Next 服务端不保存用户凭证。
+账号按后端指南创建。access token 仅在浏览器内存，refresh token 保存在当前标签页 sessionStorage；页面刷新通过轮换恢复会话。退出清除身份与 Query 缓存。Next 不保存服务端凭证，不连接业务数据库。
+
+## 目录与契约
+
+- app/：语言根布局、公共 SSR、私有客户端入口和 Metadata。
+- components/：上游 UI primitives、布局、Providers、登录与 Item 工作区。
+- lib/auth/：浏览器会话；lib/api/generated/：Hey API 生成结果。
+- lib/i18n/、locales/：类型化语言路由与双语 ICU 文案。
+- stores/：按组件树隔离并验证持久化数据的 UI 偏好；服务端数据由 TanStack Query 管理。
+
+Rust API 使用 code/message/data 成功响应、code/message/details 错误和整数毫秒时间戳。更新本地 openapi/openapi.json 后重新生成：
 
 ```sh
 npm run generate:api
-npm run lint
 npm run format:check
+npm run lint
+npm run check:i18n
 npm run typecheck
 npm run build
-npm run start
 ```
 
-构建生成 `.next/standalone`，本端 postbuild 复制静态资源；start 直接运行该产物。公开环境变量在构建时写入浏览器代码，生产环境变更需要重新 build。
+禁止手改生成文件。当前适配排除 PWA / Service Worker 与模板演示内容。
 
-生产构建前设置 NEXT_PUBLIC_API_BASE_URL，再执行 `npm run build`。部署完整 `.next/standalone` 目录，在该目录运行 `NODE_ENV=production PORT=3000 HOSTNAME=127.0.0.1 node server.js`；本端 postbuild 已包含静态资源。按目标主机配置监听地址、端口和反向代理。
+## 产物与浏览器验证
 
-API 输入和生成配置在本端 `openapi` / `openapi-ts.config.ts`；SDK 在 `src/api/generated`，不能手改。语言资源使用 next-intl ICU 消息，本端维护；locale layout 更新翻译，根认证状态不随切换语言清除。
+postbuild 将 public 与静态资源复制到 .next/standalone。完整复制该目录并在其中运行 node server.js；按主机设置 NODE_ENV=production、PORT、HOSTNAME。本地 npm start 也运行该 standalone 产物。
 
-启动真实 API 并 build 后，`npm run test:e2e` 检查真实密码登录 / CRUD、两种语言 / 主题、刷新、注销、响应式页面和 SSR。首次需要 `npx playwright install chromium`。结果放在本端被 Git 忽略的 `.ailog`。
+启动真实 Rust / 数据库服务并创建 alice / bob 后：
 
-## AI 开发
+```sh
+npx playwright install chromium
+npm run test:e2e
+```
 
-在本目录启动，读取 [AGENTS.md](AGENTS.md)。[next-changelog 示例](.agents/skills/next-changelog/SKILL.md) 用于按请求创建或更新本端 `changelog.md`。保留公共 SSR 与浏览器私有认证边界。独立复制时保留 AGENTS.md 和隐藏的 `.agents` 目录；验证继续使用上文原生命令。临时计划与证据统一放在忽略的 `.ailog`，无需父仓库文件或个人模型/MCP 配置。
+验证真实认证和 CRUD、刷新、退出、双语 SSR、主题、语言切换、偏好、错误、响应式与键盘操作。截图、trace 和报告保存在 .ailog。npm run verify 串接本地质量检查。
+
+## 维护
+
+先读 [AGENTS.md](AGENTS.md)，独立复制时保留 .agents。[英文](CHANGELOG.md) / [中文](CHANGELOG.zh-CN.md) 日志同步维护。本端原生命令不依赖父目录配置。直接依赖与锁文件一起审查，npm 12 allowScripts 允许必要的 native 构建依赖。当前结果以验证报告为准，不沿用上游结果作为本项目证据。许可证：[Apache-2.0](LICENSE)。

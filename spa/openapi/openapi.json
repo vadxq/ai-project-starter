@@ -18,7 +18,58 @@
         ],
         "type": "object"
       },
-      "Health": {
+      "ErrorDetails": {
+        "description": "上游 details 的已知字段，仅补充契约元数据，运行时仍保留可扩展 JSON 对象。",
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rejection": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_status": {
+            "format": "int32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ErrorDetails"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "HealthResponse": {
+        "description": "`/health` 的响应体。",
         "properties": {
           "status": {
             "type": "string"
@@ -51,8 +102,8 @@
             "type": "boolean"
           },
           "createdAt": {
-            "format": "date-time",
-            "type": "string"
+            "format": "int64",
+            "type": "integer"
           },
           "id": {
             "format": "uuid",
@@ -62,8 +113,8 @@
             "type": "string"
           },
           "updatedAt": {
-            "format": "date-time",
-            "type": "string"
+            "format": "int64",
+            "type": "integer"
           },
           "version": {
             "format": "int32",
@@ -129,40 +180,19 @@
         ],
         "type": "object"
       },
-      "Problem": {
+      "ReadyResponse": {
+        "description": "`/ready` 的响应体。",
         "properties": {
-          "code": {
+          "database": {
             "type": "string"
           },
-          "detail": {
-            "type": "string"
-          },
-          "instance": {
-            "type": "string"
-          },
-          "requestId": {
-            "type": "string"
-          },
-          "status": {
-            "format": "int32",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "title": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
+          "ready": {
+            "type": "boolean"
           }
         },
         "required": [
-          "type",
-          "title",
-          "status",
-          "code",
-          "detail",
-          "instance",
-          "requestId"
+          "ready",
+          "database"
         ],
         "type": "object"
       },
@@ -175,6 +205,138 @@
         },
         "required": [
           "refreshToken"
+        ],
+        "type": "object"
+      },
+      "SuccessResponse_HealthResponse": {
+        "description": "对外统一的成功响应结构。",
+        "properties": {
+          "code": {
+            "description": "HTTP 状态码字符串，例如 `\"200\"`。",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/HealthResponse"
+          },
+          "message": {
+            "description": "成功消息，当前统一固定为 `success`。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "SuccessResponse_Identity": {
+        "description": "对外统一的成功响应结构。",
+        "properties": {
+          "code": {
+            "description": "HTTP 状态码字符串，例如 `\"200\"`。",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Identity"
+          },
+          "message": {
+            "description": "成功消息，当前统一固定为 `success`。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "SuccessResponse_Item": {
+        "description": "对外统一的成功响应结构。",
+        "properties": {
+          "code": {
+            "description": "HTTP 状态码字符串，例如 `\"200\"`。",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Item"
+          },
+          "message": {
+            "description": "成功消息，当前统一固定为 `success`。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "SuccessResponse_ItemPage": {
+        "description": "对外统一的成功响应结构。",
+        "properties": {
+          "code": {
+            "description": "HTTP 状态码字符串，例如 `\"200\"`。",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ItemPage"
+          },
+          "message": {
+            "description": "成功消息，当前统一固定为 `success`。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "SuccessResponse_ReadyResponse": {
+        "description": "对外统一的成功响应结构。",
+        "properties": {
+          "code": {
+            "description": "HTTP 状态码字符串，例如 `\"200\"`。",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReadyResponse"
+          },
+          "message": {
+            "description": "成功消息，当前统一固定为 `success`。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "SuccessResponse_TokenResponse": {
+        "description": "对外统一的成功响应结构。",
+        "properties": {
+          "code": {
+            "description": "HTTP 状态码字符串，例如 `\"200\"`。",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TokenResponse"
+          },
+          "message": {
+            "description": "成功消息，当前统一固定为 `success`。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
         ],
         "type": "object"
       },
@@ -238,7 +400,7 @@
     }
   },
   "info": {
-    "description": "Username/password login issues a 15-minute JWT and a rotating refresh token. Logout revokes the session. Titles use 1–240 UTF-8 bytes after ASCII trimming. PATCH rejects null and requires at least one changed field. All errors use RFC9457 Problem Details.",
+    "description": "Username/password login issues a 15-minute JWT and a rotating refresh token. Logout revokes the session. Titles use 1–240 UTF-8 bytes after ASCII trimming. PATCH rejects null and requires at least one changed field. Responses use code/message/data; errors use code/message/details. Timestamps are epoch milliseconds. PostgreSQL and MySQL share business semantics.",
     "license": {
       "identifier": "Apache-2.0",
       "name": "Apache-2.0"
@@ -266,7 +428,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TokenResponse"
+                  "$ref": "#/components/schemas/SuccessResponse_TokenResponse"
                 }
               }
             },
@@ -274,9 +436,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -284,9 +446,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -294,9 +456,29 @@
           },
           "413": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -304,9 +486,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -337,9 +519,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -347,9 +529,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -357,9 +539,29 @@
           },
           "413": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -367,9 +569,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -399,7 +601,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TokenResponse"
+                  "$ref": "#/components/schemas/SuccessResponse_TokenResponse"
                 }
               }
             },
@@ -407,9 +609,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -417,9 +619,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -427,9 +629,29 @@
           },
           "413": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -437,9 +659,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -482,7 +704,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemPage"
+                  "$ref": "#/components/schemas/SuccessResponse_ItemPage"
                 }
               }
             },
@@ -490,9 +712,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -500,9 +722,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -510,9 +732,9 @@
           },
           "403": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -520,9 +742,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -535,7 +757,7 @@
           }
         ],
         "tags": [
-          "routes"
+          "items"
         ]
       },
       "post": {
@@ -555,7 +777,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/SuccessResponse_Item"
                 }
               }
             },
@@ -571,9 +793,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -581,9 +803,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -591,9 +813,9 @@
           },
           "403": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -601,9 +823,29 @@
           },
           "413": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -611,9 +853,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -626,7 +868,7 @@
           }
         ],
         "tags": [
-          "routes"
+          "items"
         ]
       }
     },
@@ -660,9 +902,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -670,9 +912,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -680,9 +922,9 @@
           },
           "403": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -690,9 +932,9 @@
           },
           "404": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -700,9 +942,9 @@
           },
           "409": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -710,9 +952,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -725,7 +967,7 @@
           }
         ],
         "tags": [
-          "routes"
+          "items"
         ]
       },
       "get": {
@@ -746,7 +988,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/SuccessResponse_Item"
                 }
               }
             },
@@ -754,9 +996,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -764,9 +1006,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -774,9 +1016,9 @@
           },
           "403": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -784,9 +1026,9 @@
           },
           "404": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -794,9 +1036,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -809,7 +1051,7 @@
           }
         ],
         "tags": [
-          "routes"
+          "items"
         ]
       },
       "patch": {
@@ -840,7 +1082,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/SuccessResponse_Item"
                 }
               }
             },
@@ -848,9 +1090,9 @@
           },
           "400": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -858,9 +1100,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -868,9 +1110,9 @@
           },
           "403": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -878,9 +1120,9 @@
           },
           "404": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -888,9 +1130,9 @@
           },
           "409": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -898,9 +1140,29 @@
           },
           "413": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -908,9 +1170,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -923,7 +1185,7 @@
           }
         ],
         "tags": [
-          "routes"
+          "items"
         ]
       }
     },
@@ -935,7 +1197,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Identity"
+                  "$ref": "#/components/schemas/SuccessResponse_Identity"
                 }
               }
             },
@@ -943,9 +1205,9 @@
           },
           "401": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -953,9 +1215,9 @@
           },
           "403": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -963,9 +1225,9 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
@@ -978,7 +1240,7 @@
           }
         ],
         "tags": [
-          "routes"
+          "items"
         ]
       }
     },
@@ -990,15 +1252,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Health"
+                  "$ref": "#/components/schemas/SuccessResponse_HealthResponse"
                 }
               }
             },
             "description": ""
           }
         },
+        "summary": "存活探针，只表明进程已经正常接收请求。",
         "tags": [
-          "routes"
+          "health"
         ]
       }
     },
@@ -1010,7 +1273,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Health"
+                  "$ref": "#/components/schemas/SuccessResponse_ReadyResponse"
                 }
               }
             },
@@ -1018,17 +1281,18 @@
           },
           "503": {
             "content": {
-              "application/problem+json": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Problem"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
             "description": ""
           }
         },
+        "summary": "就绪探针，会实际探测数据库是否可用。",
         "tags": [
-          "routes"
+          "health"
         ]
       }
     }

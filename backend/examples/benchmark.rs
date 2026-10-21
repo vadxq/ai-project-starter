@@ -31,7 +31,7 @@ async fn request(
     if response.status() == 204 {
         Value::Null
     } else {
-        response.json().await.expect("benchmark DTO")
+        response.json::<Value>().await.expect("benchmark response")["data"].clone()
     }
 }
 

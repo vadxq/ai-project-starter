@@ -24,39 +24,43 @@ impl Session {
     }
 }
 
-async fn problem(response: Response, status: u16, code: &str) {
+async fn payload(response: Response) -> Value {
+    let status = response.status().as_u16();
+    let value: Value = response.json().await.unwrap();
+    assert_eq!(value["code"], status.to_string());
+    assert_eq!(value["message"], "success");
+    value["data"].clone()
+}
+
+async fn problem(response: Response, status: u16, reason: &str) {
     assert_eq!(response.status().as_u16(), status);
-    assert_eq!(
-        response.headers().get("content-type").unwrap(),
-        "application/problem+json"
-    );
-    let request_id = response
-        .headers()
-        .get("x-request-id")
-        .unwrap()
+    assert_eq!(response.headers()["content-type"], "application/json");
+    let request_id = response.headers()["x-request-id"]
         .to_str()
         .unwrap()
         .to_owned();
     let value: Value = response.json().await.unwrap();
-    assert_eq!(value["code"], code);
-    assert_eq!(value["status"], status);
-    assert_eq!(value["requestId"], request_id);
+    assert_eq!(value["code"], status.to_string());
+    assert!(value["message"].is_string());
+    if let Some(actual) = value["details"]["reason"].as_str() {
+        assert_eq!(actual, reason);
+    }
     assert!(Uuid::parse_str(&request_id).is_ok());
 }
 
 async fn validation_cases(session: &Session) {
-    for body in [
-        json!({"title":" ","completed":false}),
-        json!({"title":"中".repeat(81),"completed":false}),
-        json!({"title":"ok"}),
-        json!({"title":"ok","completed":false,"extra":1}),
-        json!({"title":null,"completed":false}),
+    for (body, status) in [
+        (json!({"title":" ","completed":false}), 400),
+        (json!({"title":"中".repeat(81),"completed":false}), 400),
+        (json!({"title":"ok"}), 422),
+        (json!({"title":"ok","completed":false,"extra":1}), 422),
+        (json!({"title":null,"completed":false}), 422),
     ] {
         problem(
             session
                 .request(Method::POST, "/api/v1/items", Some(body))
                 .await,
-            400,
+            status,
             "validation_error",
         )
         .await;
@@ -77,15 +81,15 @@ async fn validation_cases(session: &Session) {
         .await;
     }
     let path = format!("/api/v1/items/{}", Uuid::new_v4());
-    for body in [
-        json!({"version":1}),
-        json!({"version":0,"completed":true}),
-        json!({"version":1,"title":null}),
-        json!({"version":1,"completed":null}),
+    for (body, status) in [
+        (json!({"version":1}), 400),
+        (json!({"version":0,"completed":true}), 400),
+        (json!({"version":1,"title":null}), 422),
+        (json!({"version":1,"completed":null}), 422),
     ] {
         problem(
             session.request(Method::PATCH, &path, Some(body)).await,
-            400,
+            status,
             "validation_error",
         )
         .await;
@@ -95,7 +99,7 @@ async fn validation_cases(session: &Session) {
             .request(
                 Method::POST,
                 "/api/v1/items",
-                Some(json!({"title":"a".repeat(20_000),"completed":false})),
+                Some(json!({"title":"a".repeat(2_100_000),"completed":false})),
             )
             .await,
         413,
@@ -120,17 +124,11 @@ async fn crud_cases(alice: &Session, bob: &Session) {
         .to_str()
         .unwrap()
         .to_owned();
-    let item: Value = response.json().await.unwrap();
+    let item: Value = payload(response).await;
     assert_eq!(item["title"], "真实事项");
     assert_eq!(item["version"], 1);
-    let date = item["createdAt"].as_str().unwrap();
-    assert!(regex::Regex::new(r"\.\d{3}Z$").unwrap().is_match(date));
-    let get: Value = alice
-        .request(Method::GET, &location, None)
-        .await
-        .json()
-        .await
-        .unwrap();
+    assert!(item["createdAt"].as_i64().unwrap() > 1_700_000_000_000);
+    let get: Value = payload(alice.request(Method::GET, &location, None).await).await;
     assert_eq!(get, item);
     for method in [Method::GET, Method::PATCH, Method::DELETE] {
         let (path, body) = if method == Method::DELETE {
@@ -143,12 +141,12 @@ async fn crud_cases(alice: &Session, bob: &Session) {
         };
         problem(bob.request(method, &path, body).await, 404, "not_found").await;
     }
-    let page: Value = alice
-        .request(Method::GET, "/api/v1/items?limit=100&offset=0", None)
-        .await
-        .json()
-        .await
-        .unwrap();
+    let page: Value = payload(
+        alice
+            .request(Method::GET, "/api/v1/items?limit=100&offset=0", None)
+            .await,
+    )
+    .await;
     assert!(
         page["items"]
             .as_array()
@@ -194,7 +192,7 @@ async fn crud_cases(alice: &Session, bob: &Session) {
 async fn authentication_json_errors_preserve_http_status() {
     let base = std::env::var("TEST_API_URL").expect("TEST_API_URL");
     let http = Client::new();
-    const OVERSIZED_FIELD_BYTES: usize = 20_000;
+    const OVERSIZED_FIELD_BYTES: usize = 2_100_000;
     for (path, body) in [
         (
             "/api/v1/auth/login",
@@ -228,7 +226,7 @@ async fn authentication_json_errors_preserve_http_status() {
 }
 
 #[tokio::test]
-#[ignore = "requires running PostgreSQL and API with alice/bob accounts; see README"]
+#[ignore = "requires running PostgreSQL or MySQL and API with alice/bob accounts; see README"]
 async fn real_jwt_and_database_contract() {
     let base = std::env::var("TEST_API_URL").expect("TEST_API_URL");
     let alice_tokens = support::login(&base, "alice", "starter-password").await;
@@ -251,25 +249,10 @@ async fn real_jwt_and_database_contract() {
         alice.request(Method::GET, "/ready", None).await.status(),
         200
     );
-    let me: Value = alice
-        .request(Method::GET, "/api/v1/me", None)
-        .await
-        .json()
-        .await
-        .unwrap();
-    let again: Value = alice
-        .request(Method::GET, "/api/v1/me", None)
-        .await
-        .json()
-        .await
-        .unwrap();
+    let me: Value = payload(alice.request(Method::GET, "/api/v1/me", None).await).await;
+    let again: Value = payload(alice.request(Method::GET, "/api/v1/me", None).await).await;
     assert_eq!(me, again);
-    let other: Value = bob
-        .request(Method::GET, "/api/v1/me", None)
-        .await
-        .json()
-        .await
-        .unwrap();
+    let other: Value = payload(bob.request(Method::GET, "/api/v1/me", None).await).await;
     assert_ne!(me["id"], other["id"]);
     for token in [String::new(), "not-a-token".to_owned()] {
         let invalid = Session {
@@ -301,10 +284,10 @@ async fn real_jwt_and_database_contract() {
 }
 
 #[tokio::test]
-#[ignore = "requires running PostgreSQL/API and JWT_SECRET; see README"]
+#[ignore = "requires running PostgreSQL or MySQL/API and APP_AUTH__JWT_SECRET; see README"]
 async fn passwords_jwt_rotation_and_logout_are_enforced() {
     let base = std::env::var("TEST_API_URL").expect("TEST_API_URL");
-    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET");
+    let secret = std::env::var("APP_AUTH__JWT_SECRET").expect("APP_AUTH__JWT_SECRET");
     let http = Client::new();
     for username in ["alice", "nonexistent-account"] {
         let response = http
@@ -367,6 +350,11 @@ async fn passwords_jwt_rotation_and_logout_are_enforced() {
         "unauthorized",
     )
     .await;
+    verify_rotation(base, tokens).await;
+}
+
+async fn verify_rotation(base: String, tokens: support::Tokens) {
+    let http = Client::new();
     let refresh = || {
         http.post(format!("{base}/api/v1/auth/refresh"))
             .json(&json!({"refreshToken":tokens.refresh_token}))
@@ -381,7 +369,7 @@ async fn passwords_jwt_rotation_and_logout_are_enforced() {
         (second, first)
     };
     problem(loser, 401, "unauthorized").await;
-    let rotated: support::Tokens = winner.json().await.unwrap();
+    let rotated: support::Tokens = serde_json::from_value(payload(winner).await).unwrap();
     assert_ne!(rotated.refresh_token, tokens.refresh_token);
     let session = Session {
         http: http.clone(),

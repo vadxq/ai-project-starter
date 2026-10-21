@@ -11,7 +11,7 @@ mkdir -p "$root/.ailog"
 scratch="$(mktemp -d "$root/.ailog/contracts.XXXXXX")"
 trap 'rm -rf "$scratch"' EXIT
 export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$root/.ailog/target}"
-(cd "$root/backend" && cargo run --quiet --locked --example export-openapi) > "$scratch/openapi.json"
+(cd "$root/backend" && cargo run --quiet --locked --release --example export-openapi) > "$scratch/openapi.json"
 
 files=(docs/contracts/openapi.json spa/openapi/openapi.json next/openapi/openapi.json android/app/openapi/openapi.json ios/Packages/APIClient/Sources/APIClient/openapi.json)
 case "$mode" in
@@ -23,7 +23,9 @@ case "$mode" in
     for path in "${files[@]}"; do cmp "$scratch/openapi.json" "$root/$path"; done
     for project in spa next; do
       (cd "$root/$project" && npm exec -- openapi-ts --output "$scratch/$project")
-      diff -qr "$root/$project/src/api/generated" "$scratch/$project"
+      generated="$root/$project/src/api/generated"
+      if [[ "$project" == next ]]; then generated="$root/$project/lib/api/generated"; fi
+      diff -qr "$generated" "$scratch/$project"
     done
     ;;
   *) printf '%s\n' 'Use check or generate' >&2; exit 2 ;;

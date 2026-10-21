@@ -1,20 +1,21 @@
 use utoipa::{
     Modify, OpenApi,
     openapi::{
-        OpenApi as Specification,
+        Components, OpenApi as Specification, Ref, RefOr, Schema,
         security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
     },
 };
 
-use super::{auth, error::Problem, routes};
+use super::error::ErrorResponse;
 use crate::domain::auth::{LoginRequest, RefreshRequest, TokenResponse};
 use crate::domain::models::*;
+use crate::domain::{auth::handler as auth, health::handler as health, items::handler as routes};
 
 #[derive(OpenApi)]
 #[openapi(
-    info(title = "Starter API", version = "0.1.0", description = "Username/password login issues a 15-minute JWT and a rotating refresh token. Logout revokes the session. Titles use 1–240 UTF-8 bytes after ASCII trimming. PATCH rejects null and requires at least one changed field. All errors use RFC9457 Problem Details."),
-    paths(auth::login, auth::refresh, auth::logout, routes::health, routes::ready, routes::me, routes::list, routes::create, routes::get, routes::update, routes::delete),
-    components(schemas(LoginRequest, RefreshRequest, TokenResponse, Identity, Item, ItemPage, CreateItem, UpdateItem, Problem, Health)),
+    info(title = "Starter API", version = "0.1.0", description = "Username/password login issues a 15-minute JWT and a rotating refresh token. Logout revokes the session. Titles use 1–240 UTF-8 bytes after ASCII trimming. PATCH rejects null and requires at least one changed field. Responses use code/message/data; errors use code/message/details. Timestamps are epoch milliseconds. PostgreSQL and MySQL share business semantics."),
+    paths(auth::login, auth::refresh, auth::logout, health::health, health::ready, routes::me, routes::list, routes::create, routes::get, routes::update, routes::delete),
+    components(schemas(LoginRequest, RefreshRequest, TokenResponse, Identity, Item, ItemPage, CreateItem, UpdateItem, ErrorResponse, health::HealthResponse, health::ReadyResponse)),
     modifiers(&ContractMetadata)
 )]
 pub struct ApiDoc;
@@ -33,27 +34,26 @@ impl Modify for ContractMetadata {
                         .build(),
                 ),
             );
-        }
-        // 使用同一错误 media type，并显式记录路由 / method / 内部错误约定。
-        for path in openapi.paths.paths.values_mut() {
-            let operations = [
-                &mut path.get,
-                &mut path.post,
-                &mut path.patch,
-                &mut path.delete,
-            ];
-            for operation in operations.into_iter().flatten() {
-                for (status, response) in &mut operation.responses.responses {
-                    if status.parse::<u16>().is_ok_and(|code| code >= 400)
-                        && let utoipa::openapi::RefOr::T(response) = response
-                        && let Some(content) = response.content.shift_remove("application/json")
-                    {
-                        response
-                            .content
-                            .insert("application/problem+json".to_owned(), content);
-                    }
-                }
+            for name in [
+                "Identity",
+                "Item",
+                "ItemPage",
+                "TokenResponse",
+                "HealthResponse",
+                "ReadyResponse",
+            ] {
+                link_response(components, name);
             }
         }
+    }
+}
+
+/// 泛型包装复用命名 DTO，避免各生成器为内联对象生成另一套不兼容类型。
+fn link_response(components: &mut Components, name: &str) {
+    let wrapper = format!("SuccessResponse_{name}");
+    if let Some(RefOr::T(Schema::Object(schema))) = components.schemas.get_mut(&wrapper) {
+        schema
+            .properties
+            .insert("data".to_owned(), Ref::from_schema_name(name).into());
     }
 }

@@ -1,20 +1,20 @@
-# Rust API
+# Rust + Axum API
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Rust 1.99 / Axum / SQLx / PostgreSQL 16. Provides username/password login, JWT access tokens, rotating refresh sessions, personal Item CRUD, `/health`, and `/ready`. This directory is standalone.
+Based on upstream rust-axum-starter commit 6df373d98b573e8155cd1d1931065aa16af81598. Uses Rust stable / edition 2024, Axum 0.8.9, SQLx 0.9, PostgreSQL or MySQL. Includes password login, rotating JWT sessions, owner-scoped Item CRUD, health probes and offline OpenAPI export. This directory is standalone.
 
-## Setup and running
+## Run locally
 
-Install and start native PostgreSQL 16. Create a dedicated user and database through a database administrator connection:
+Use a native PostgreSQL / MySQL installation, or start one of the upstream Compose profiles:
 
 ```sh
-createuser --pwprompt starter
-createdb --owner=starter starter
 cp -n .env.example .env
+docker-compose --profile postgres up -d --wait
+# Alternative: docker-compose --profile mysql up -d --wait
 ```
 
-Edit DATABASE_URL, BIND_ADDRESS, CORS_ORIGINS, and JWT_SECRET in `.env`. Generate a random signing secret with `openssl rand -hex 32` and set JWT_SECRET to that value. The example placeholder is rejected. If port 5432 is in use, run this project's database on a separate port.
+Set APP_DATABASE__URL in .env for your database. Set APP_AUTH__JWT_SECRET to a random value generated with openssl rand -hex 32. Then:
 
 ```sh
 cargo run --locked --bin migrate
@@ -23,51 +23,58 @@ STARTER_USER_PASSWORD=starter-password cargo run --locked --bin create-user -- b
 cargo run --locked
 ```
 
-Accounts are created explicitly; no accounts are seeded automatically. The example password above is for local development. The create-user command requires a unique username of 1–64 ASCII letters, digits, dots, underscores, or hyphens, and an 8–128 byte password. It does not overwrite existing accounts.
+Accounts are created explicitly and existing usernames are never overwritten. The example password is for local testing. The API does not migrate automatically. To retain existing PostgreSQL data, keep applied migration files unchanged; the same versions now live under migrations/postgres. MySQL has equivalent migrations under migrations/mysql.
 
-| Setting      | Description                                                         |
-| ------------ | ------------------------------------------------------------------- |
-| DATABASE_URL | Required PostgreSQL URL; server-side only                           |
-| BIND_ADDRESS | Required listening address, such as 127.0.0.1:8080                  |
-| JWT_SECRET   | Required random signing secret, at least 32 bytes; server-side only |
-| CORS_ORIGINS | Required comma-separated list of exact Web origins                  |
-| RUST_LOG     | tracing filter, such as starter_api=info                            |
+## Configuration
 
-Run migrations explicitly before starting the API. Existing identities and Items are preserved by the additive local-auth migration. Old external-provider identities do not acquire passwords automatically; create local accounts explicitly. No external identity provider is needed.
+| Setting                       | Meaning                                                             |
+| ----------------------------- | ------------------------------------------------------------------- |
+| APP_HTTP__BIND_ADDR           | Listen address, default 0.0.0.0:8080                                |
+| APP_DATABASE__URL             | PostgreSQL / MySQL URL; empty means probes-only HTTP startup        |
+| APP_DATABASE__MAX_CONNECTIONS | Positive connection limit, default 10                               |
+| APP_DATABASE__TIMEOUT_SECS    | Pool / readiness timeout, default 3 seconds                         |
+| APP_AUTH__JWT_SECRET          | At least 32 random bytes; backend only; required for authentication |
+| APP_TELEMETRY__LOG_LEVEL      | tracing filter, default info; RUST_LOG takes precedence             |
+| APP_TELEMETRY__JSON           | JSON logging, default false                                         |
 
-## Authentication
+Configuration precedence is defaults, then local .env, then process environment. Invalid values and unknown fields in known groups fail startup. Configuration loading does not mutate the process environment. Legacy DATABASE_URL / BIND_ADDRESS / JWT_SECRET / CORS_ORIGINS names are no longer used.
 
-`POST /api/v1/auth/login` accepts `{username,password}` and returns `{accessToken,refreshToken,tokenType,expiresIn,user}`. The user has `id` and `username`. Passwords use Argon2id. The access token is a 15-minute HS256 JWT with issuer, audience, expiry, user, and session claims.
+Database pools connect lazily. Without a database or during an outage, /health remains 200 and /ready is 503. Readiness recovers when the database returns. Authentication returns 503 when its database or signing key is not configured. CORS follows the upstream permissive implementation.
 
-`POST /api/v1/auth/refresh` accepts `{refreshToken}` and returns a rotated token pair. Refresh tokens are random opaque values; only SHA-256 hashes are stored in PostgreSQL. Sessions expire after 30 days. A refresh token can be used once; clients must serialize refresh requests.
+## API contract
 
-`POST /api/v1/auth/logout` accepts `{refreshToken}` and revokes that session. Both its access JWT and refresh token become unusable. Private endpoints require `Authorization: Bearer <accessToken>`. Use HTTPS in production. This is direct password authentication with JWT, not a full OAuth 2.0 authorization server.
+Except empty 204 responses, success uses {code,message,data}; code matches the HTTP status as a string. Errors use {code,message,details?}. Business details.reason is a stable localization key. Item timestamps are integer Unix epoch milliseconds. This replaces the previous bare DTO / Problem Details / RFC3339 contract.
 
-## Verification and contract
+JSON syntax errors return 400, oversized bodies 413, missing or invalid Content-Type 415, and JSON type / missing-field / unknown-field errors 422. Business validation is 400. Request IDs are generated or propagated through X-Request-Id.
+
+POST /api/v1/auth/login accepts username/password. Refresh rotates a 30-day opaque token atomically; only its hash is stored. A 15-minute HS256 JWT validates issuer, audience, expiry, subject and session. Logout revokes both credentials for that session. Business requests use Bearer access tokens.
+
+Items require limit / offset for listing and version for updates / deletes. Titles contain 1–240 UTF-8 bytes after ASCII trimming. Other owners' resources return 404. Transactions lock the owned row before version checks; stale versions return 409. Both databases enforce the same semantics.
+
+## Local verification
 
 ```sh
-cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test
-cargo build --release --locked --bins
+cargo fmt --all -- --check
+cargo clippy --locked --all-targets --all-features -- -D warnings
+cargo test --locked
+cargo build --locked --release --bins
 cargo run --locked --example export-openapi
 ```
 
-Export reads DTOs and routes without connecting to services. Item title is 1–240 UTF-8 bytes after ASCII trimming. Lists require limit 1–100 and offset ≥0. PATCH / DELETE require version. Operations are scoped to the owner; other users' resources return 404, and stale versions return 409. Errors use RFC9457 Problem Details with stable code and requestId.
-
-Start PostgreSQL and the API with alice/bob accounts, then run:
+Real database / HTTP tests are ignored by default. Prepare a dedicated database, migrate and create alice / bob, start the API with the same signing key, then run each database separately:
 
 ```sh
-TEST_API_URL=http://localhost:8080 JWT_SECRET='<same secret as the running API>' \
-cargo test --test api_integration -- --ignored
+TEST_DATABASE_URL='<dedicated PostgreSQL URL>' cargo test --locked --test database postgres_ -- --ignored
+TEST_DATABASE_URL='<dedicated MySQL URL>' cargo test --locked --test database mysql_ -- --ignored
+TEST_API_URL=http://localhost:8080 APP_AUTH__JWT_SECRET='<running API key>' cargo test --locked --test api_integration -- --ignored
 ```
 
-Tests use real password verification, JWTs, PostgreSQL, and HTTP. They cover invalid credentials, signature / issuer / audience / expiry, refresh rotation, logout, CRUD, owner isolation, and version conflicts. Regular cargo test leaves these service-dependent tests ignored; that does not mean they passed.
+When local proxy variables are configured, set both `NO_PROXY` and `no_proxy` to `localhost,127.0.0.1,::1` for HTTP tests and benchmarks.
 
-Authentication endpoints also verify malformed JSON returns 400 and oversized JSON returns 413, matching Item endpoints. OpenAPI descriptions state the title's UTF-8 byte semantics explicitly; maxLength is not used as a substitute for post-trim byte validation. PATCH must supply at least one modified field in addition to version, with null rejected.
+See [testing](docs/development/testing.md). Tests use real database transactions, HTTP and passwords. An ignored test is not a passed test.
 
-Production binaries are `target/release/migrate`, `target/release/create-user`, and `target/release/starter-api`. Configure server settings, migrate, create accounts with your own passwords, then start the API. Never ship the local example password or expose JWT_SECRET to clients.
+Release output includes rust-axum-starter, migrate and create-user. Ship migrations/ alongside the migration command and run it from this directory structure. Use HTTPS and your own production credentials.
 
-## AI development
+## Maintenance
 
-Start in this directory and read [AGENTS.md](AGENTS.md). The [backend-changelog example](.agents/skills/backend-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.
+Read [AGENTS.md](AGENTS.md). Keep this directory's lockfile, locales, migrations, examples and .agents when copying it. Temporary evidence belongs in ignored .ailog. Update [CHANGELOG.md](CHANGELOG.md) with actual changes; do not automatically commit or push. License: [Apache-2.0](LICENSE).

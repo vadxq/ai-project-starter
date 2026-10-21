@@ -1,0 +1,103 @@
+@layer components {
+  .workspace-main {
+    max-width: 64rem;
+    padding-block: clamp(2rem, 6vw, 4rem);
+  }
+  .workspace-heading {
+    @apply mb-8 flex flex-wrap items-center justify-between gap-4;
+  }
+  .workspace-heading h1 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  .account {
+    @apply flex items-center gap-3 text-sm text-muted-foreground;
+  }
+  .sign-in-form {
+    @apply grid gap-3;
+  }
+  .sign-in-form label {
+    @apply mt-2 text-sm font-medium;
+  }
+  .sign-in-form button {
+    @apply mt-4;
+  }
+  .density-option {
+    @apply mb-3 flex justify-end;
+  }
+  .create-form {
+    @apply flex gap-3;
+  }
+  .create-form input {
+    @apply min-w-0 flex-1;
+  }
+  .list-heading {
+    @apply mt-8 mb-3 flex items-center justify-between text-sm text-muted-foreground;
+  }
+  .item-list {
+    @apply border-t border-border;
+  }
+  .item-row {
+    @apply flex items-start gap-4 border-b border-border py-5;
+    animation: enter 180ms ease-out;
+  }
+  [data-compact='true'] .item-row {
+    @apply py-3;
+  }
+  .item-row > input {
+    @apply mt-2 size-4 shrink-0 accent-primary;
+  }
+  .item-content {
+    @apply min-w-0 flex-1;
+  }
+  .item-title {
+    @apply break-words leading-7;
+    overflow-wrap: anywhere;
+  }
+  .is-complete .item-title {
+    @apply text-muted-foreground line-through;
+  }
+  .item-date {
+    @apply text-xs text-muted-foreground;
+  }
+  .row-actions {
+    @apply flex flex-wrap items-center gap-1;
+  }
+  .row-actions button {
+    @apply px-2;
+  }
+  .row-actions > span {
+    @apply text-xs text-muted-foreground;
+  }
+  .edit-form {
+    @apply grid gap-3;
+  }
+  .empty-state {
+    @apply py-16 text-center text-muted-foreground;
+  }
+  .empty-state h2 {
+    @apply mb-2 font-medium text-foreground;
+  }
+  .error-state {
+    @apply my-4 flex flex-wrap items-center justify-between gap-3 text-sm text-destructive;
+  }
+  .field-error {
+    @apply mt-2 text-sm text-destructive;
+  }
+  .pagination {
+    @apply mt-6 flex items-center justify-between gap-4 text-sm;
+  }
+  .danger {
+    @apply text-destructive;
+  }
+  @media (max-width: 40rem) {
+    .item-row {
+      @apply flex-wrap gap-3;
+    }
+    .item-content {
+      flex-basis: calc(100% - 2rem);
+    }
+    .item-row > .row-actions {
+      @apply ml-7;
+    }
+  }
+}

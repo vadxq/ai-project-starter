@@ -1,19 +1,19 @@
-use starter_api::platform::{auth::create_account, config::required, database};
+//! 显式创建账号，不覆盖已有用户名，也不在 API 启动时写入数据。
+use anyhow::Context;
+use rust_axum_starter::platform::{auth::create_account, config::Settings, db::DatabasePool};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if let Err(error) = dotenvy::dotenv()
-        && !error.not_found()
-    {
-        return Err(error.into());
-    }
+async fn main() -> anyhow::Result<()> {
     let username = std::env::args()
         .nth(1)
-        .ok_or("usage: create-user <username>; set STARTER_USER_PASSWORD")?;
-    let password = required("STARTER_USER_PASSWORD")?;
-    let pool = database::connect(&required("DATABASE_URL")?).await?;
-    create_account(&pool, username, password).await?;
-    pool.close().await;
-    println!("Account created");
+        .context("usage: create-user <username>")?;
+    let password =
+        std::env::var("STARTER_USER_PASSWORD").context("STARTER_USER_PASSWORD is required")?;
+    let settings = Settings::load()?;
+    let database = DatabasePool::from_settings(&settings.database)?
+        .context("APP_DATABASE__URL is required")?;
+    let result = create_account(&database, username, password).await;
+    database.close().await;
+    result?;
     Ok(())
 }

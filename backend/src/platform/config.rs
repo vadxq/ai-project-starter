@@ -1,63 +1,117 @@
-use std::{env, net::SocketAddr, time::Duration};
+//! 以只读快照合并配置，避免修改进程环境造成并发风险。
 
-use axum::http::HeaderValue;
-use url::Url;
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    num::{NonZeroU32, NonZeroU64},
+};
 
-pub const IO_TIMEOUT: Duration = Duration::from_secs(5);
-pub const CONNECT_ATTEMPTS: usize = 3;
+use config::{Config, ConfigError, Environment};
+use serde::Deserialize;
+use tracing_subscriber::EnvFilter;
 
-pub struct Config {
-    pub database_url: String,
-    pub bind_address: SocketAddr,
-    pub jwt_secret: String,
-    pub cors_origins: Vec<HeaderValue>,
+/// 数据库凭证不派生 Debug，避免意外进入日志。
+#[derive(Clone, Deserialize)]
+pub struct Settings {
+    pub http: HttpSettings,
+    pub database: DatabaseSettings,
+    pub telemetry: TelemetrySettings,
+    pub auth: AuthSettings,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum ConfigError {
-    #[error("missing or invalid configuration: {0}")]
-    Invalid(&'static str),
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthSettings {
+    /// 不配置密钥时可运行探针，业务认证返回依赖不可用。
+    pub jwt_secret: Option<String>,
 }
 
-pub fn required(name: &'static str) -> Result<String, ConfigError> {
-    env::var(name)
-        .ok()
-        .filter(|value| !value.trim().is_empty())
-        .ok_or(ConfigError::Invalid(name))
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HttpSettings {
+    pub bind_addr: SocketAddr,
 }
 
-impl Config {
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DatabaseSettings {
+    pub url: Option<String>,
+    pub max_connections: NonZeroU32,
+    /// 同时约束连接获取与就绪查询的总时限。
+    pub timeout_secs: NonZeroU64,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TelemetrySettings {
+    pub log_level: String,
+    pub json: bool,
+}
+
+impl Settings {
+    /// 优先级：默认值 < 当前目录 .env < 进程环境；损坏的 .env 必须报错。
     pub fn load() -> Result<Self, ConfigError> {
-        let jwt_secret = required("JWT_SECRET")?;
-        if jwt_secret.len() < 32 || jwt_secret.starts_with("replace-") {
-            return Err(ConfigError::Invalid(
-                "JWT_SECRET requires a random secret of at least 32 bytes",
+        let dotenv: HashMap<String, String> = match dotenvy::from_path_iter(".env") {
+            Ok(iter) => iter
+                .collect::<Result<HashMap<String, String>, dotenvy::Error>>()
+                .map_err(|_| ConfigError::Message(".env 格式错误，请检查配置文件".into()))?,
+            Err(dotenvy::Error::Io(error)) if error.kind() == std::io::ErrorKind::NotFound => {
+                HashMap::new()
+            }
+            Err(_) => return Err(ConfigError::Message("无法读取 .env 配置文件".into())),
+        };
+        Self::from_sources(dotenv, std::env::vars().collect())
+    }
+
+    /// 显式输入验证配置优先级，不读写全局环境。
+    pub fn from_sources(
+        dotenv: HashMap<String, String>,
+        environment: HashMap<String, String>,
+    ) -> Result<Self, ConfigError> {
+        let source: HashMap<String, String> = dotenv
+            .into_iter()
+            .chain(environment)
+            .map(|(key, value)| (key, value.trim().to_owned()))
+            .collect();
+        let log_level: String = source
+            .get("RUST_LOG")
+            .filter(|value| !value.is_empty())
+            .or_else(|| source.get("APP_TELEMETRY__LOG_LEVEL"))
+            .filter(|value| !value.is_empty())
+            .cloned()
+            .unwrap_or_else(|| "info".to_owned());
+        EnvFilter::try_new(&log_level)
+            .map_err(|_| ConfigError::Message("日志过滤器格式错误".into()))?;
+
+        let settings: Self = Config::builder()
+            .set_default("http.bind_addr", "0.0.0.0:8080")?
+            .set_default("database.url", None::<String>)?
+            .set_default("database.max_connections", 10)?
+            .set_default("database.timeout_secs", 3)?
+            .set_default("telemetry.log_level", "info")?
+            .set_default("telemetry.json", false)?
+            .set_default("auth.jwt_secret", None::<String>)?
+            .add_source(
+                Environment::with_prefix("APP")
+                    .prefix_separator("_")
+                    .separator("__")
+                    .try_parsing(true)
+                    .ignore_empty(true)
+                    .source(Some(source)),
+            )
+            .set_override("telemetry.log_level", log_level)?
+            .build()?
+            .try_deserialize()?;
+        if settings
+            .auth
+            .jwt_secret
+            .as_ref()
+            .is_some_and(|secret| secret.len() < 32 || secret.starts_with("replace-"))
+        {
+            return Err(ConfigError::Message(
+                "APP_AUTH__JWT_SECRET 必须为至少 32 字节的随机密钥".into(),
             ));
         }
-        let cors_origins = required("CORS_ORIGINS")?
-            .split(',')
-            .map(|origin| {
-                let parsed =
-                    Url::parse(origin).map_err(|_| ConfigError::Invalid("CORS_ORIGINS"))?;
-                if !matches!(parsed.scheme(), "http" | "https")
-                    || parsed.path() != "/"
-                    || parsed.query().is_some()
-                    || parsed.fragment().is_some()
-                {
-                    return Err(ConfigError::Invalid("CORS_ORIGINS"));
-                }
-                origin
-                    .parse()
-                    .map_err(|_| ConfigError::Invalid("CORS_ORIGINS"))
-            })
-            .collect::<Result<Vec<HeaderValue>, ConfigError>>()?;
-        Ok(Self {
-            database_url: required("DATABASE_URL")?,
-            bind_address: required("BIND_ADDRESS")?
-                .parse()
-                .map_err(|_| ConfigError::Invalid("BIND_ADDRESS"))?,
-            jwt_secret,
-            cors_origins,
-        })
+        Ok(settings)
     }
 }

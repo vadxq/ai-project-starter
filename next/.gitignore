@@ -1,10 +1,31 @@
-.DS_Store
+# 依赖和构建产物
+/node_modules/
+!.nvmrc
+/.next/
+/out/
+/build/
+*.tsbuildinfo
+next-env.d.ts
+
+# 本地环境；示例配置纳入版本控制
 .env*
 !.env.example
-node_modules/
-dist/
-.next/
-.ailog/
-test-results/
-playwright-report/
-*.tsbuildinfo
+.DS_Store
+*.pem
+/.vercel/
+npm-debug.log*
+
+# 浏览器测试运行产物
+/test-results/
+/playwright-report/
+/coverage/
+
+# Service Worker 构建产物
+/public/sw*
+/public/swe-worker*
+
+# 不提交编辑器或代理的本地状态
+/.cursor/
+/.codex/
+
+/.ailog/

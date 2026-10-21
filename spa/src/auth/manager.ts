@@ -5,6 +5,7 @@ import type {
   TokenResponse,
 } from '../api/generated/types.gen';
 import { readConfig } from '../config';
+import { serverErrorCode } from '../api/problem';
 
 const REFRESH_KEY: string = 'starter.refresh';
 const REFRESH_MARGIN_MS: number = 30_000;
@@ -63,13 +64,7 @@ class TokenSession {
     });
     if (!response.ok) {
       const problem: unknown = await response.json();
-      const code: string =
-        typeof problem === 'object' &&
-        problem !== null &&
-        'code' in problem &&
-        typeof problem.code === 'string'
-          ? problem.code
-          : 'unknown_error';
+      const code: string = serverErrorCode(problem, response.status);
       throw new AuthFailure({ code, status: response.status });
     }
     return response;
@@ -88,7 +83,7 @@ class TokenSession {
   async signIn(input: LoginRequest): Promise<Identity> {
     const started: number = ++this.generation;
     const response: Response = await this.request('/api/v1/auth/login', input);
-    const session: TokenResponse = (await response.json()) as TokenResponse;
+    const session: TokenResponse = ((await response.json()) as { data: TokenResponse }).data;
     return this.accept(session, started);
   }
 
@@ -106,7 +101,7 @@ class TokenSession {
     const started: number = this.generation;
     this.refreshing = this.request('/api/v1/auth/refresh', { refreshToken: token })
       .then(async (response: Response): Promise<Identity> =>
-        this.accept((await response.json()) as TokenResponse, started),
+        this.accept(((await response.json()) as { data: TokenResponse }).data, started),
       )
       .catch((error: unknown): never => {
         if (started === this.generation && error instanceof AuthFailure && error.status === 401)

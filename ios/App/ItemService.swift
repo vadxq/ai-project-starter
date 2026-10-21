@@ -26,8 +26,9 @@ struct BearerMiddleware: ClientMiddleware {
         if response.status.code >= 400 {
             guard let body else { throw APIError(code: "unknown_error", status: response.status.code, requestID: nil) }
             let data: Data = try await Data(collecting: body, upTo: 64 * 1024)
-            let problem: Components.Schemas.Problem = try JSONDecoder().decode(Components.Schemas.Problem.self, from: data)
-            throw APIError(code: problem.code, status: response.status.code, requestID: problem.requestId)
+            let problem: Components.Schemas.ErrorResponse = try JSONDecoder().decode(Components.Schemas.ErrorResponse.self, from: data)
+            throw APIError(code: serverErrorCode(status: response.status.code, reason: problem.details?.reason), status: response.status.code,
+                requestID: response.headerFields[.init("x-request-id")!])
         }
         return (response, body)
     }
@@ -37,17 +38,17 @@ struct ItemService: Sendable {
     let client: Client
 
     @MainActor init(config: Configuration, auth: AuthSession, preferences: Preferences) {
-        client = Client(serverURL: config.apiURL, configuration: .init(dateTranscoder: .iso8601WithFractionalSeconds), transport: URLSessionTransport(), middlewares: [
+        client = Client(serverURL: config.apiURL, configuration: .init(), transport: URLSessionTransport(), middlewares: [
             BearerMiddleware(token: { try await auth.accessToken() }, locale: { await preferences.apiLocale }, unauthorized: { try await auth.reject(token: $0) }),
         ])
     }
 
     func me() async throws -> Components.Schemas.Identity {
-        try await client.getMe().ok.body.json
+        try await client.getMe().ok.body.json.data
     }
 
     func list(offset: Int) async throws -> Components.Schemas.ItemPage {
-        try await client.listItems(query: .init(limit: 20, offset: Int64(offset))).ok.body.json
+        try await client.listItems(query: .init(limit: 20, offset: Int64(offset))).ok.body.json.data
     }
 
     func create(title: String) async throws {

@@ -89,6 +89,12 @@ export const getMe = <ThrowOnError extends boolean = false>(options?: Options<Ge
     ...options
 });
 
+/**
+ * 存活探针，只表明进程已经正常接收请求。
+ */
 export const health = <ThrowOnError extends boolean = false>(options?: Options<HealthData, ThrowOnError>): RequestResult<HealthResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HealthResponses, unknown, ThrowOnError>({ url: '/health', ...options });
 
+/**
+ * 就绪探针，会实际探测数据库是否可用。
+ */
 export const ready = <ThrowOnError extends boolean = false>(options?: Options<ReadyData, ThrowOnError>): RequestResult<ReadyResponses, ReadyErrors, ThrowOnError> => (options?.client ?? client).get<ReadyResponses, ReadyErrors, ThrowOnError>({ url: '/ready', ...options });

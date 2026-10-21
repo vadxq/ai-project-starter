@@ -41,3 +41,5 @@ The local API input is `Packages/APIClient/Sources/APIClient/openapi.json`. The 
 ## AI development
 
 Start in this directory and read [AGENTS.md](AGENTS.md). The [ios-changelog example](.agents/skills/ios-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.
+
+API contract: success responses use code/message/data; errors use code/message/details with HTTP status strings and optional details.reason; Item dates use epoch milliseconds. The local generated client and handwritten connector must be updated together.

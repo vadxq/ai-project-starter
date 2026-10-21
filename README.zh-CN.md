@@ -8,7 +8,7 @@
 | ------- | -------------------------------------------------- | ---------------------------------------- |
 | SPA     | [spa/README.zh-CN.md](spa/README.zh-CN.md)         | Node 24、npm                             |
 | Next    | [next/README.zh-CN.md](next/README.zh-CN.md)       | Node 24、npm                             |
-| Backend | [backend/README.zh-CN.md](backend/README.zh-CN.md) | Rust 1.99、PostgreSQL 16                 |
+| Backend | [backend/README.zh-CN.md](backend/README.zh-CN.md) | Rust stable、PostgreSQL / MySQL          |
 | Android | [android/README.zh-CN.md](android/README.zh-CN.md) | JDK 21、Android SDK；设备 Android 14+    |
 | iOS     | [ios/README.zh-CN.md](ios/README.zh-CN.md)         | Xcode、XcodeGen、CocoaPods；设备 iOS 18+ |
 
@@ -16,7 +16,7 @@
 
 ## 本地开始
 
-先进入 backend，按本端说明启动原生 PostgreSQL，复制 `.env.example` 为 `.env`，配置连接信息与随机 JWT_SECRET。显式迁移，用 `create-user` 创建本地账号后执行 `cargo run`。示例 alice / bob 和密码 starter-password 需按 backend 文档手动创建；生产使用实际密码。
+先进入 backend，按本端说明启动 PostgreSQL 或 MySQL，复制 `.env.example` 为 `.env`，配置连接信息与随机 APP_AUTH__JWT_SECRET。显式迁移，用 `create-user` 创建本地账号后执行 `cargo run`。示例 alice / bob 和密码 starter-password 需按 backend 文档手动创建；生产使用实际密码。
 
 选择 SPA 或 Next，进入相应目录复制配置、执行 `npm ci`、`npm run dev`。默认端口：SPA 5173、Next 3000、API 8080。每个端只需要自己的工具链与可访问的服务。
 
@@ -38,13 +38,13 @@ AI 从 [AGENTS.md](AGENTS.md) 和目标工程规则开始，按 [实施计划](d
 
 根 scripts 只提供完整仓库内的辅助操作。各端原生的构建、检查和测试命令仍是独立使用入口。真实认证 / 数据库测试需要启动本地服务；签名、生产部署和商店上架不包含在首版中。
 
-例如 `bash scripts/verify.sh spa quick`、`bash scripts/verify.sh backend full` 或 `bash scripts/contracts.sh check`。必须显式指定模式：quick 执行静态/构建检查，full 追加本端真实集成；backend full 构建前要求 TEST_API_URL / JWT_SECRET。Web 需要实际 API；Android 需要 Emulator 和 adb reverse；iOS 指定 `IOS_DESTINATION='platform=iOS Simulator,id=<UUID>'`。单个 full 结果不替代完整发布矩阵。
+例如 `bash scripts/verify.sh spa quick`、`bash scripts/verify.sh backend full` 或 `bash scripts/contracts.sh check`。必须显式指定模式：quick 执行静态/构建检查，full 追加本端真实集成；backend full 构建前要求 TEST_API_URL / TEST_DATABASE_URL / APP_AUTH__JWT_SECRET。Web 需要实际 API；Android 需要 Emulator 和 adb reverse；iOS 指定 `IOS_DESTINATION='platform=iOS Simulator,id=<UUID>'`。单个 full 结果不替代完整发布矩阵。
 
-五端已实现；JWT 改造的可执行检查结果见 [JWT 验收报告](docs/verification/2026-10-05-jwt-auth.md)，Android 真实运行与当前移动系统矩阵尚未完成。当前验收状态以 [交付计划](docs/v0.1.0/delivery-plan.md) 为准，历史报告仅适用于其明确范围。生产服务地址、签名和部署由实际项目配置。
+Next / Backend 已按 2026-10-21 上游基线换新，四端新契约适配完成；两库、Web 与最低 / 当前安装移动系统的本地验证通过。范围与已知依赖告警见 [本轮报告](docs/verification/2026-10-21-upstream-refresh.md)，当前状态以 [交付计划](docs/v0.1.0/delivery-plan.md) 为准。生产服务地址、签名和部署由实际项目配置。
 
 ## AI 开发
 
-每个工程携带 AGENTS.md 和一个本地 `.agents/skills/<project>-changelog` 示例，用于编写本端 `changelog.md`；根 [update-changelog](.agents/skills/update-changelog/SKILL.md) 示例维护仓库日志。日志不存在时初始化，存在时合并已确认的实际变更。验证继续使用各端 README 和交付计划中的原生命令。使用方式与范围见 [AI 工作流](docs/ai-workflows.md)。
+每个工程携带 AGENTS.md 和本地 `.agents/skills/<project>-changelog` 示例。Next 维护 `CHANGELOG.md` / `CHANGELOG.zh-CN.md`，Backend 使用 `CHANGELOG.md`，其余示例与根 [update-changelog](.agents/skills/update-changelog/SKILL.md) 使用 `changelog.md`。日志不存在时初始化，存在时合并已确认的实际变更。验证继续使用各端 README 和交付计划中的原生命令。使用方式与范围见 [AI 工作流](docs/ai-workflows.md)。
 
 临时计划、日志、测试报告和任务缓存统一写入 Git 忽略的 `.ailog`。模板不依赖个人模型、凭证或 MCP 安装。
 

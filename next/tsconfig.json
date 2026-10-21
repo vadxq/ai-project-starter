@@ -1,23 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2023",
-    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext", "webworker"],
+    "allowJs": true,
+    "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
-    "skipLibCheck": true,
     "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "allowJs": true
+    "paths": {
+      "~/*": ["./*"]
+    }
   },
   "include": [
     "next-env.d.ts",
@@ -26,5 +29,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "public/sw.js", "public/sw*"]
 }

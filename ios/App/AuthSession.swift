@@ -36,14 +36,15 @@ final class AuthSession {
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw Failure.invalidResponse }
         if response.statusCode >= 400 {
-            let problem = try JSONDecoder().decode(Components.Schemas.Problem.self, from: data)
-            throw APIError(code: problem.code, status: response.statusCode, requestID: problem.requestId)
+            let problem = try JSONDecoder().decode(Components.Schemas.ErrorResponse.self, from: data)
+            throw APIError(code: serverErrorCode(status: response.statusCode, reason: problem.details?.reason), status: response.statusCode,
+                requestID: response.value(forHTTPHeaderField: "X-Request-Id"))
         }
         return data
     }
 
     private func token(path: String, body: Data) async throws -> Components.Schemas.TokenResponse {
-        try JSONDecoder().decode(Components.Schemas.TokenResponse.self, from: await request(path: path, body: body))
+        try JSONDecoder().decode(Components.Schemas.SuccessResponse_TokenResponse.self, from: await request(path: path, body: body)).data
     }
 
     private func accept(_ session: Components.Schemas.TokenResponse, started: Int) throws {

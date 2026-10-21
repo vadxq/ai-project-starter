@@ -55,14 +55,14 @@ export function useItems(): ItemsState {
     enabled: Boolean(user),
     retry: 1,
     queryFn: async ({ signal }): Promise<Identity> =>
-      (await getMe({ ...apiOptions(), signal })).data,
+      (await getMe({ ...apiOptions(), signal })).data.data,
   });
   const query = useQuery({
     queryKey: ['items', identity.data?.id, offset],
     enabled: Boolean(identity.data),
     retry: 1,
     queryFn: async ({ signal }): Promise<ItemPage> =>
-      (await listItems({ ...apiOptions(), query: { limit: PAGE_SIZE, offset }, signal })).data,
+      (await listItems({ ...apiOptions(), query: { limit: PAGE_SIZE, offset }, signal })).data.data,
   });
   const mutation = useMutation({
     mutationFn: writeItem,

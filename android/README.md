@@ -37,3 +37,5 @@ Native strings and plurals live in values and values-zh-rCN; app language select
 ## AI development
 
 Start in this directory and read [AGENTS.md](AGENTS.md). The [android-changelog example](.agents/skills/android-changelog/SKILL.md) creates or updates this project's `changelog.md` when requested. Keep AGENTS.md and the hidden `.agents` directory when copying the project. Verification uses the native commands above. Temporary plans and evidence belong in ignored `.ailog`; parent repository files and personal model/MCP configuration are not required.
+
+API contract: success responses use code/message/data; errors use code/message/details with HTTP status strings and optional details.reason; Item dates use epoch milliseconds. The local generated client and handwritten connector must be updated together.

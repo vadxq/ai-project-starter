@@ -151,7 +151,7 @@ private fun ItemRow(item: Item, model: ItemsViewModel, saving: Boolean): Unit {
             Spacer(Modifier.width(8.dp))
             Column {
                 Text(item.title, textDecoration = if (item.completed) TextDecoration.LineThrough else TextDecoration.None)
-                Text(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault()).format(Instant.parse(item.updatedAt)),
+                Text(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(item.updatedAt)),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }

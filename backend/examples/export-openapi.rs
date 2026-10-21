@@ -1,4 +1,4 @@
-use starter_api::api::openapi::ApiDoc;
+use rust_axum_starter::api::openapi::ApiDoc;
 use utoipa::OpenApi;
 
 fn main() -> Result<(), serde_json::Error> {

@@ -8,7 +8,7 @@ Five standalone projects to choose from: a Vite + React SPA, Next.js, Rust + Axu
 | ------- | -------------------------------------- | ------------------------------------------ |
 | SPA     | [spa/README.md](spa/README.md)         | Node 24, npm                               |
 | Next    | [next/README.md](next/README.md)       | Node 24, npm                               |
-| Backend | [backend/README.md](backend/README.md) | Rust 1.99, PostgreSQL 16                   |
+| Backend | [backend/README.md](backend/README.md) | Rust stable, PostgreSQL / MySQL            |
 | Android | [android/README.md](android/README.md) | JDK 21, Android SDK; Android 14+ device    |
 | iOS     | [ios/README.md](ios/README.md)         | Xcode, XcodeGen, CocoaPods; iOS 18+ device |
 
@@ -16,7 +16,7 @@ Each directory can be copied on its own and has its own configuration, `.gitigno
 
 ## Getting started locally
 
-Start in `backend`, run native PostgreSQL, copy `.env.example` to `.env`, and configure database settings and a random JWT_SECRET. Run migrations, create accounts with `create-user`, then run `cargo run`. Local demo accounts alice / bob with starter-password must be created explicitly as described in the backend guide; use your own passwords in production.
+Start in `backend`, run PostgreSQL or MySQL, copy `.env.example` to `.env`, and configure database settings and a random APP_AUTH__JWT_SECRET. Run migrations, create accounts with `create-user`, then run `cargo run`. Local demo accounts alice / bob with starter-password must be created explicitly as described in the backend guide; use your own passwords in production.
 
 Choose SPA or Next, enter its directory, copy the example configuration, and run `npm ci` followed by `npm run dev`. Default ports are SPA 5173, Next 3000, API 8080. Each project only needs its own toolchain and access to the configured services.
 
@@ -38,13 +38,13 @@ AI agents should start with [AGENTS.md](AGENTS.md) and the target project's rule
 
 The root `scripts` directory provides helpers for the complete repository. Each project's native build, check, and test commands remain its standalone entry points. Real authentication and database tests require running local services. Signing, production deployment, and store submission are outside the first release's scope.
 
-Examples: `bash scripts/verify.sh spa quick`, `bash scripts/verify.sh backend full`, or `bash scripts/contracts.sh check`. The mode is required: quick runs static/build checks; full also runs the target's real integration tests. Backend full requires TEST_API_URL and JWT_SECRET before any build. Web tests require a real API; Android requires an Emulator and `adb reverse`; iOS requires `IOS_DESTINATION='platform=iOS Simulator,id=<UUID>'`. One full target does not replace the complete release matrix.
+Examples: `bash scripts/verify.sh spa quick`, `bash scripts/verify.sh backend full`, or `bash scripts/contracts.sh check`. The mode is required: quick runs static/build checks; full also runs the target's real integration tests. Backend full requires TEST_API_URL, TEST_DATABASE_URL and APP_AUTH__JWT_SECRET before any build. Web tests require a real API; Android requires an Emulator and `adb reverse`; iOS requires `IOS_DESTINATION='platform=iOS Simulator,id=<UUID>'`. One full target does not replace the complete release matrix.
 
-The five projects are implemented. JWT changes passed the executable checks recorded in the [JWT verification report](docs/verification/2026-10-05-jwt-auth.md), while Android real execution and the current mobile OS matrix remain incomplete. The [delivery plan](docs/v0.1.0/delivery-plan.md) is the current acceptance-status source; historical reports apply only to their stated scope. Configure production service URLs, signing and deployment for your own project.
+Next and Backend now use the 2026-10-21 upstream baselines, with all four clients adapted to the new contract. Local verification passed for both databases, both Web projects, and the minimum / currently installed mobile systems. See the [verification report](docs/verification/2026-10-21-upstream-refresh.md) for scope and dependency advisories, and the [delivery plan](docs/v0.1.0/delivery-plan.md) for current status. Configure production service URLs, signing and deployment for your own project.
 
 ## AI development
 
-Each project includes AGENTS.md and one local `.agents/skills/<project>-changelog` example for writing its own `changelog.md`. The root [update-changelog](.agents/skills/update-changelog/SKILL.md) example maintains the repository log. These writing skills initialize an absent log or merge confirmed changes into an existing one; native verification remains in the project READMEs and delivery plan. See [AI workflows](docs/ai-workflows.md) (in Chinese) for usage and scope.
+Each project includes AGENTS.md and a local `.agents/skills/<project>-changelog` example. Next maintains `CHANGELOG.md` and `CHANGELOG.zh-CN.md`; Backend uses `CHANGELOG.md`; the other examples and the root [update-changelog](.agents/skills/update-changelog/SKILL.md) use `changelog.md`. These writing skills initialize an absent log or merge confirmed changes into an existing one; native verification remains in the project READMEs and delivery plan. See [AI workflows](docs/ai-workflows.md) (in Chinese) for usage and scope.
 
 Temporary plans, logs, test reports and task-owned caches belong in ignored `.ailog`. No personal model, credential or MCP installation is required by these templates.
 

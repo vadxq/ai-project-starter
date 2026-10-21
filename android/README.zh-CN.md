@@ -37,3 +37,5 @@ adb reverse tcp:8080 tcp:8080
 ## AI 开发
 
 在本目录启动，读取 [AGENTS.md](AGENTS.md)。[android-changelog 示例](.agents/skills/android-changelog/SKILL.md) 用于按请求创建或更新本端 `changelog.md`。独立复制时保留 AGENTS.md 和隐藏的 `.agents` 目录；验证继续使用上文原生命令。临时计划与证据统一放在忽略的 `.ailog`，无需父仓库文件或个人模型/MCP 配置。
+
+API 契约：成功响应为 code/message/data，错误为 code/message/details，code 是 HTTP 状态字符串，details.reason 为可选业务键；Item 日期为 epoch 毫秒。更新本地生成客户端时同步调整手写连接器。

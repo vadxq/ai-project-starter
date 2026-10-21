@@ -1,0 +1,24 @@
+-- 原迁移版本与校验和不变，追加 schema 说明以遵循上游数据库规范。
+COMMENT ON TABLE identities IS '身份来源与稳定用户 UUID';
+COMMENT ON COLUMN identities.id IS '用户 UUID';
+COMMENT ON COLUMN identities.issuer IS '身份来源';
+COMMENT ON COLUMN identities.subject IS '来源中的身份标识';
+COMMENT ON COLUMN identities.created_at IS 'UTC 创建时间';
+COMMENT ON TABLE accounts IS '本地账号';
+COMMENT ON COLUMN accounts.id IS '身份 UUID';
+COMMENT ON COLUMN accounts.username IS '区分大小写的唯一用户名';
+COMMENT ON COLUMN accounts.password_hash IS 'Argon2id 密码散列';
+COMMENT ON TABLE auth_sessions IS '可轮换、可撤销的认证会话';
+COMMENT ON COLUMN auth_sessions.id IS '会话 UUID';
+COMMENT ON COLUMN auth_sessions.account_id IS '所属账号 UUID';
+COMMENT ON COLUMN auth_sessions.refresh_hash IS '刷新凭证 SHA-256 散列';
+COMMENT ON COLUMN auth_sessions.expires_at IS '会话 UTC 绝对过期时间';
+COMMENT ON COLUMN auth_sessions.revoked_at IS '会话 UTC 撤销时间';
+COMMENT ON TABLE items IS '按 owner 隔离、使用 version 并发控制的个人任务';
+COMMENT ON COLUMN items.id IS '任务 UUID';
+COMMENT ON COLUMN items.owner_id IS '所属身份 UUID';
+COMMENT ON COLUMN items.title IS 'ASCII 裁剪后 1–240 UTF-8 字节';
+COMMENT ON COLUMN items.completed IS '是否完成';
+COMMENT ON COLUMN items.version IS '乐观版本：从 1 递增';
+COMMENT ON COLUMN items.created_at IS 'UTC 创建时间';
+COMMENT ON COLUMN items.updated_at IS 'UTC 修改时间';

@@ -12,7 +12,8 @@ fi
 # 在构建前检查真实验证条件，避免缺依赖时产生成功结果。
 if [[ "$target" == backend && "$mode" == full ]]; then
   : "${TEST_API_URL:?Full backend verification requires TEST_API_URL}"
-  : "${JWT_SECRET:?Full backend verification requires JWT_SECRET matching the running API}"
+  : "${APP_AUTH__JWT_SECRET:?Full backend verification requires APP_AUTH__JWT_SECRET matching the running API}"
+  : "${TEST_DATABASE_URL:?Full backend verification requires a dedicated PostgreSQL or MySQL database}"
 fi
 mkdir -p "$root/.ailog"
 
@@ -21,10 +22,16 @@ case "$target" in
     cd "$root/backend"
     export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$root/.ailog/target}"
     cargo fmt --check
-    cargo clippy --locked --all-targets -- -D warnings
+    cargo clippy --locked --all-targets --all-features -- -D warnings
     cargo test --locked
     cargo build --locked --release --bins
     if [[ "$mode" == full ]]; then
+      case "$TEST_DATABASE_URL" in
+        postgres://*|postgresql://*) database_test=postgres_migrations_and_readiness_follow_contract ;;
+        mysql://*) database_test=mysql_migrations_and_readiness_follow_contract ;;
+        *) printf '%s\n' 'TEST_DATABASE_URL must use PostgreSQL or MySQL' >&2; exit 2 ;;
+      esac
+      cargo test --locked --test database "$database_test" -- --ignored
       cargo test --locked --test api_integration -- --ignored
     else
       printf '%s\n' 'Quick checks passed; real API/database integration was not run. This is not release acceptance.'
@@ -34,6 +41,7 @@ case "$target" in
     cd "$root/$target"
     npm run format:check
     npm run lint
+    if [[ "$target" == next ]]; then npm run check:i18n; fi
     npm run typecheck
     npm run build
     if [[ "$mode" == full ]]; then npm run test:e2e; fi
